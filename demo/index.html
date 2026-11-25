@@ -4,72 +4,110 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atoms ranking replay</title>
-<meta name="description" content="Replay of 40 validation sessions: our ranker against a popularity baseline, scored by what each player did.">
+<meta name="description" content="A replay of Atoms validation sessions: a learned ranker against popularity, 0.521 vs 0.403 NDCG@5, with the reasons behind each pick.">
+<meta name="theme-color" content="#EBEFE8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://atoms-ranking-replay.vercel.app/">
+<meta property="og:title" content="Atoms ranking replay">
+<meta property="og:description" content="A replay of Atoms validation sessions: a learned ranker against popularity, 0.521 vs 0.403 NDCG@5, with the reasons behind each pick.">
+<meta property="og:image" content="https://atoms-ranking-replay.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atoms ranking replay">
+<meta name="twitter:description" content="A replay of Atoms validation sessions: a learned ranker against popularity, 0.521 vs 0.403 NDCG@5, with the reasons behind each pick.">
+<meta name="twitter:image" content="https://atoms-ranking-replay.vercel.app/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-/* Same notebook as the report and summary (design/doc/doc.css): pale computation-pad green,
+/* Same notebook as the report and summary: pale computation-pad green,
    green-black ink, one red accent for what matters (the cold-user interval that includes zero). */
 :root {
   --paper: #EBEFE8;
   --paper-2: #E1E7DE;
   --paper-3: #D5DDD1;
+  --band: #DFE5DB;
   --ink: #1E2622;
   --ink-2: #56605A;
   --rule: #9AA59D;
   --rule-2: #C3CBC2;
   --accent: #B02A17;
+  --cur: var(--paper-2);
   --serif: "Young Serif", Georgia, serif;
   --sans: "Schibsted Grotesk", "Segoe UI", Arial, sans-serif;
   --num: "Funnel Sans", "Schibsted Grotesk", Arial, sans-serif;
-  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px; --s9: 96px;
+  --sec: var(--s9);
+  --bar-h: 60px;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
   --spring: cubic-bezier(.3, 1.15, .4, 1);
 }
+@media (max-width: 760px) { :root { --sec: var(--s8); --bar-h: 56px; } }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; background: var(--paper); }
+html { -webkit-text-size-adjust: 100%; background: var(--paper); scroll-behavior: smooth; scroll-padding-top: calc(var(--bar-h) + var(--s4)); }
 body {
   margin: 0; background: var(--paper); color: var(--ink);
   font-family: var(--sans); font-size: 15px; line-height: 1.6;
-  font-kerning: normal;
+  font-kerning: normal; overflow-x: hidden;
 }
 .mono, .num { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-.wrap { max-width: 1360px; margin: 0 auto; padding: 0 var(--s5); }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--s5); }
 @media (max-width: 640px) { .wrap { padding: 0 var(--s4); } }
+.g12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--s5); }
+.g12 > * { grid-column: 1 / -1; min-width: 0; }
 
-/* ---------- head ---------- */
-.runhead { display: flex; justify-content: space-between; gap: var(--s4); padding: var(--s5) 0 var(--s2); border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--ink-2); }
-.runhead b { color: var(--ink); font-weight: 600; }
-.title { padding: var(--s7) 0 var(--s6); }
-.title h1 {
-  font-family: var(--serif); font-weight: 400; margin: 0; color: var(--ink);
-  font-size: clamp(34px, 4.4vw, 54px); line-height: 1.08; letter-spacing: -.03em; max-width: 20ch;
+/* ---------- top bar ---------- */
+.topbar { position: sticky; top: 0; z-index: 20; background: var(--paper); border-bottom: 1px solid var(--rule-2); }
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); height: var(--bar-h); }
+.mark { font-family: var(--serif); font-size: 18px; letter-spacing: -.01em; color: var(--ink); white-space: nowrap; }
+.nav { display: flex; gap: var(--s1); margin-right: -10px; }
+.nav a {
+  display: inline-block; color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: 14px; padding: 8px 10px; white-space: nowrap;
+  text-decoration: underline transparent; text-underline-offset: 5px; text-decoration-thickness: 1.5px;
+  transition: color .15s var(--ease-out), text-decoration-color .15s var(--ease-out), transform .25s var(--spring);
 }
-.title .lede { margin: var(--s4) 0 0; color: var(--ink); max-width: 62ch; font-size: 17px; line-height: 1.6; }
+.nav a:hover { color: var(--ink); text-decoration-color: var(--rule); }
+.nav a:active { transform: translateY(1px); }
+.nav a[aria-current="true"] { color: var(--ink); text-decoration-color: var(--ink); }
+@media (max-width: 480px) { .mark { font-size: 14px; } .nav a { font-size: 12.5px; padding: 8px 5px; } .nav { gap: 0; margin-right: -5px; } }
 
-/* ---------- ruled rows, as in the summary: label left, content right ---------- */
-.row { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--s5); border-top: 1px solid var(--ink); padding: var(--s4) 0 var(--s6); }
-@media (max-width: 860px) { .row { grid-template-columns: 1fr; gap: var(--s3); } }
-.row > h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.2; letter-spacing: -.01em; margin: 0; padding-top: 2px; }
+/* ---------- sections ---------- */
+.sec { padding: var(--sec) 0; }
+.sec + .sec { padding-top: 0; }
+.sec-h { font-family: var(--serif); font-weight: 400; font-size: clamp(26px, 2.6vw, 34px); line-height: 1.15; letter-spacing: -.02em; margin: 0 0 var(--s6); }
 
-/* result */
-.scores { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s7); align-items: baseline; }
-.score .k { font-size: 14px; color: var(--ink-2); }
-.score .v { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-weight: 500; font-size: 30px; line-height: 1.2; letter-spacing: -.02em; min-width: 5ch; }
+/* ---------- hero ---------- */
+.hero { align-items: center; row-gap: var(--s7); }
+#result { padding-top: var(--s8); }
+.hero-copy { grid-column: 1 / span 6; padding-right: var(--s5); }
+.hero-result { grid-column: 7 / span 6; }
+@media (max-width: 1000px) { .hero-copy, .hero-result { grid-column: 1 / -1; } }
+.hero h1 {
+  font-family: var(--serif); font-weight: 400; margin: 0; color: var(--ink);
+  font-size: clamp(40px, 5.4vw, 68px); line-height: 1.04; letter-spacing: -.03em; max-width: 13ch;
+}
+.hero .lede { margin: var(--s5) 0 0; color: var(--ink-2); max-width: 44ch; font-size: 18px; line-height: 1.6; }
+
+.hero-result h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.2; margin: 0 0 var(--s4); }
+.scores { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s5); padding-bottom: var(--s5); border-bottom: 1px solid var(--rule); }
+.score .k { font-size: 14px; color: var(--ink-2); font-weight: 500; }
+.score .v { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-weight: 500; font-size: clamp(48px, 5.6vw, 72px); line-height: 1; letter-spacing: -.035em; margin: var(--s2) 0; }
+.score.base .v { color: var(--ink-2); }
 .score .w { font-size: 13px; color: var(--ink-2); }
-.result-text { margin: var(--s4) 0 0; max-width: 66ch; }
-.slicefig { margin: var(--s5) 0 0; max-width: 820px; }
-.slicefig svg { display: block; width: 100%; height: auto; overflow: visible; }
-.slicefig figcaption { font-size: 13px; color: var(--ink-2); margin-top: var(--s2); max-width: 66ch; }
+.slicefig { margin: var(--s5) 0 0; }
+.slicefig svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+.slicefig figcaption { font-size: 13px; color: var(--ink-2); margin-top: var(--s2); }
 .slices text { font-family: var(--sans); font-size: 13px; fill: var(--ink); }
 .slices .n, .slices .val, .slices .tick, .slices .colh { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 12px; }
 .slices .tick, .slices .colh { fill: var(--ink-2); }
-.slices .grid { stroke: var(--rule-2); stroke-width: 1; }
 .slices .zero { stroke: var(--ink); stroke-width: 1.2; }
 .slices .band { fill: var(--ink); fill-opacity: .22; }
 .slices .key text { fill: var(--ink-2); font-size: 12px; }
@@ -77,14 +115,7 @@ body {
 .slices .bar { fill: var(--ink); }
 .slices .cross .band { fill: var(--accent); fill-opacity: .35; }
 .slices .cross .bar, .slices .cross .val, .slices .cross .lab, .slices .cross .n { fill: var(--accent); }
-
-/* how to read */
-.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3) var(--s6); }
-@media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
-.cols p { margin: 0; max-width: 62ch; }
-.cols p + p { margin-top: var(--s3); }
 .cold-word { color: var(--accent); font-weight: 600; }
-
 
 /* ---------- pictograms: one 24-unit grid, 2-unit strokes, flat ink fills; tile tint = family ---------- */
 .f-action { --tb: #DDC59C; } .f-music { --tb: #CDBDD4; } .f-puzzle { --tb: #B2CCBD; } .f-strategy { --tb: #B8C4D3; } .f-words { --tb: #D0D49C; }
@@ -95,30 +126,51 @@ body {
 .tile .tx { fill: var(--ink); stroke: none; font-family: var(--num); font-weight: 600; font-size: 8px; text-anchor: middle; }
 .tile .tx.inv { fill: var(--tb); }
 .tile.lg { width: 44px; height: 44px; } .tile.lg svg { width: 28px; height: 28px; }
+.tile.xl { width: 52px; height: 52px; border-radius: 4px; } .tile.xl svg { width: 32px; height: 32px; }
 
-.kinds { margin: var(--s6) 0 0; max-width: 980px; }
-.kinds-h { font-size: 14px; font-weight: 700; padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); line-height: 1.5; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s1) var(--s4); }
-.fkey { display: flex; flex-wrap: wrap; gap: 2px var(--s3); font-weight: 400; font-size: 13px; color: var(--ink-2); }
-.fkey span { display: inline-flex; align-items: center; gap: 5px; }
+/* catalogue strip */
+.kinds { margin: var(--s8) 0 0; }
+.kinds-h { font-size: 14px; font-weight: 700; padding-bottom: var(--s2); border-bottom: 1px solid var(--ink); line-height: 1.5; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--s1) var(--s4); }
+.fkey { display: flex; flex-wrap: wrap; gap: 2px var(--s4); font-weight: 400; font-size: 13px; color: var(--ink-2); }
+.fkey span { display: inline-flex; align-items: center; gap: 6px; }
 .fkey i { width: 10px; height: 10px; border-radius: 2px; background: var(--tb); }
-.kinds ul { list-style: none; margin: 0; padding: var(--s4) 0 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s4) var(--s3); }
-.kinds li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s2); font-size: 13px; line-height: 1.3; color: var(--ink); }
-@media (max-width: 760px) { .kinds ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.kinds ul { list-style: none; margin: 0; padding: var(--s5) 0 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s5) var(--s3); }
+.kinds li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--s2); font-size: 13px; line-height: 1.3; color: var(--ink); }
+@media (max-width: 760px) { .kinds ul { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s4) var(--s2); } .kinds li { font-size: 12px; } }
 
 /* outcome meter: 0 to 3 filled segments, the grade the score uses */
 .meter { display: inline-flex; gap: 2px; margin-right: 7px; vertical-align: -1px; }
 .meter i { width: 7px; height: 11px; border: 1px solid var(--ink-2); }
 .m1 i:nth-child(1), .m2 i:nth-child(-n+2), .m3 i { background: var(--ink); border-color: var(--ink); }
 
-/* ---------- workspace ---------- */
-.workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); align-items: start; border-top: 1px solid var(--ink); padding: var(--s4) 0 var(--s7); }
-@media (max-width: 1100px) { .workspace { grid-template-columns: minmax(0, 1fr); gap: var(--s5); } }
-.picker { min-width: 0; position: sticky; top: var(--s4); display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
-@media (max-width: 1100px) { .picker { position: static; max-height: none; } }
-.picker h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.2; margin: 0 0 var(--s3); }
+/* ---------- how to read: three short points ---------- */
+.how { border-top: 1px solid var(--ink); padding-top: var(--s6); }
+.point { grid-column: span 4; }
+@media (max-width: 900px) { .point { grid-column: 1 / -1; } .point + .point { margin-top: var(--s6); } }
+.point h3 { font-family: var(--serif); font-weight: 400; font-size: 20px; line-height: 1.25; margin: 0 0 var(--s4); }
+.point p { margin: var(--s3) 0 0; max-width: 46ch; color: var(--ink); }
+.point p.sub { color: var(--ink-2); font-size: 14px; }
+.ranks { display: flex; align-items: stretch; gap: 6px; font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 15px; font-weight: 500; }
+.ranks span { width: 30px; height: 34px; display: grid; place-items: center; background: var(--paper-3); }
+.ranks span.off { background: transparent; color: var(--ink-2); border: 1px dashed var(--rule); font-weight: 400; }
+.ranks b { width: 2px; background: var(--ink); margin: 0 6px; }
+.legend { list-style: none; margin: 0; padding: 0; }
+.legend li { display: grid; grid-template-columns: 18px 40px minmax(0, 1fr); align-items: center; padding: 5px 0; border-bottom: 1px solid var(--rule-2); font-size: 14px; }
+.legend li:first-child { border-top: 1px solid var(--rule-2); }
+.legend .g { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; color: var(--ink-2); }
+.signs { font-size: 14px; color: var(--ink-2); }
+.signs b { font-family: var(--num); color: var(--ink); }
 
-/* one shared "current" treatment for filters, session rows and the phone tabs:
-   paper-2 fill, ink text, weight 700. Hover underlines, press darkens the fill. */
+/* ---------- explorer band ---------- */
+.band { background: var(--band); border-top: 1px solid var(--rule-2); border-bottom: 1px solid var(--rule-2); --cur: var(--paper); }
+.band .wrap { padding-top: var(--s8); padding-bottom: var(--s8); }
+.workspace { align-items: start; row-gap: var(--s5); }
+.picker { grid-column: 1 / span 3; position: sticky; top: calc(var(--bar-h) + var(--s4)); display: flex; flex-direction: column; max-height: calc(100vh - var(--bar-h) - 32px); }
+.session { grid-column: 4 / span 9; }
+@media (max-width: 1100px) { .picker, .session { grid-column: 1 / -1; } .picker { position: static; max-height: none; } }
+.picker h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 var(--s3); }
+
+/* one shared "current" treatment for filters, session rows and the phone tabs */
 .tbtn {
   appearance: none; border: 0; background: transparent; color: var(--ink-2); cursor: pointer;
   font: 500 14px/1.2 var(--sans); padding: 7px 8px; border-radius: 0; white-space: nowrap;
@@ -127,7 +179,7 @@ body {
 }
 .tbtn:hover { color: var(--ink); text-decoration-color: var(--ink); }
 .tbtn:active { background: var(--paper-3); }
-.tbtn[aria-pressed="true"], .tbtn[aria-selected="true"], .tbtn[aria-current="true"] { background: var(--paper-2); color: var(--ink); font-weight: 700; }
+.tbtn[aria-pressed="true"], .tbtn[aria-selected="true"], .tbtn[aria-current="true"] { background: var(--cur); color: var(--ink); font-weight: 700; }
 .tbtn[aria-pressed="true"]:active, .tbtn[aria-selected="true"]:active, .tbtn[aria-current="true"]:active { background: var(--paper-3); }
 .tbtn .ct { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13px; font-weight: 400; color: var(--ink-2); margin-left: 5px; }
 
@@ -136,11 +188,12 @@ body {
 .mobile-select { display: none; margin-top: var(--s3); }
 @media (max-width: 1100px) { .mobile-select { display: block; } .slist { display: none; } }
 .mobile-select select {
-  width: 100%; font: 500 16px var(--sans); color: var(--ink); background: var(--paper-2);
+  width: 100%; font: 500 16px var(--sans); color: var(--ink); background: var(--paper);
   border: 1px solid var(--rule); border-radius: 0; padding: 10px 12px; cursor: pointer;
   transition: border-color .15s var(--ease-out);
 }
 .mobile-select select:hover { border-color: var(--ink); }
+.mobile-select select:active { background: var(--paper-2); }
 
 .slist { overflow-y: auto; padding-bottom: var(--s3); margin: 0 -8px; }
 .grp { font-size: 13px; font-weight: 700; color: var(--ink); padding: var(--s4) 8px var(--s1); line-height: 1.4; border-bottom: 1px solid var(--rule); }
@@ -166,7 +219,7 @@ body {
 .sscore .k { font-size: 13px; color: var(--ink-2); }
 .sscore .v { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-weight: 500; font-size: 24px; line-height: 1.2; }
 
-.prefix { margin-bottom: var(--s5); }
+.prefix { margin-bottom: var(--s6); }
 .prefix-title { font-size: 14px; font-weight: 700; padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); line-height: 1.5; }
 .prefix-title span { font-weight: 400; color: var(--ink-2); }
 .pline { display: grid; grid-template-columns: 22px 44px minmax(0, 1.2fr) minmax(0, 1.4fr) 118px; gap: 0 var(--s3); padding: var(--s2) 0; border-bottom: 1px solid var(--rule-2); align-items: center; font-size: 14px; }
@@ -179,7 +232,7 @@ body {
 @media (max-width: 760px) { .mtabs { display: flex; } }
 .mtabs .tbtn { font-size: 15px; padding: 10px 12px; }
 
-.columns { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s6); }
+.columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6); }
 @media (max-width: 760px) { .columns { grid-template-columns: 1fr; } .columns[data-view="ours"] .col.base, .columns[data-view="base"] .col.ours { display: none; } }
 .col-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2); padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); }
 .col-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
@@ -187,7 +240,7 @@ body {
 .col-head .ndcg b { color: var(--ink); font-weight: 500; font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
 
 /* a ranked list is a ledger: rank, game and attributes, reasons, outcome */
-.grow { display: grid; grid-template-columns: 24px 32px minmax(0, 1fr) 108px; gap: 2px var(--s3); padding: 9px 0 10px; border-bottom: 1px solid var(--rule-2); align-items: baseline; }
+.grow { display: grid; grid-template-columns: 22px 32px minmax(0, 1fr) 100px; gap: 2px var(--s3); padding: 9px 0 10px; border-bottom: 1px solid var(--rule-2); align-items: baseline; }
 .grow .rk { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 15px; color: var(--ink); }
 .grow .body { min-width: 0; }
 .grow .tile { align-self: start; margin-top: 1px; }
@@ -205,92 +258,109 @@ body {
 .out .og { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13px; margin-right: 6px; }
 .out.r2, .out.r3 { color: var(--ink); font-weight: 600; }
 .out.r3 { font-weight: 700; }
-.cutoff { font-size: 13px; color: var(--ink-2); padding: 6px 0 var(--s2) 80px; border-top: 1px solid var(--ink); margin-top: -1px; line-height: 1.4; }
-@media (max-width: 420px) { .grow { grid-template-columns: 20px 32px minmax(0, 1fr); } .grow .out { grid-column: 3; } .cutoff { padding-left: 76px; } }
+.cutoff { font-size: 13px; color: var(--ink-2); padding: 6px 0 var(--s2) 66px; border-top: 1px solid var(--ink); margin-top: -1px; line-height: 1.4; }
+@media (max-width: 1240px) and (min-width: 761px) { .grow { grid-template-columns: 22px 32px minmax(0, 1fr); } .grow .out { grid-column: 3; } }
+@media (max-width: 420px) { .grow { grid-template-columns: 20px 32px minmax(0, 1fr); } .grow .out { grid-column: 3; } .cutoff { padding-left: 64px; } }
 
 .more {
-  appearance: none; margin-top: var(--s4); border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 0;
+  appearance: none; margin-top: var(--s5); border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 0;
   font: 600 14px/1 var(--sans); padding: 12px 16px; cursor: pointer;
   transition: background-color .15s var(--ease-out), transform .2s var(--spring);
 }
-.more:hover { background: var(--paper-2); }
+.more:hover { background: var(--paper); }
 .more:active { background: var(--paper-3); transform: translateY(1px); }
 
 .reveal { animation: rise .32s var(--ease-out) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-.foot { font-size: 14px; color: var(--ink); padding-bottom: var(--s8); }
-.foot p { margin: 0; max-width: 78ch; }
-.foot p + p { margin-top: var(--s2); }
+.foot { text-align: center; font-size: 13px; color: var(--ink-2); padding: var(--s6) 0 var(--s7); }
 .err { padding: var(--s5) 0; border-top: 1px solid var(--ink); color: var(--ink); }
 .err code { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="runhead">
-    <span><b>Atoms</b> ranking replay</span>
-  </header>
+<header class="topbar">
+  <div class="wrap">
+    <span class="mark">Atoms ranking replay</span>
+    <nav class="nav" aria-label="Sections">
+      <a href="#result" data-nav="result">Result</a>
+      <a href="#how" data-nav="how">How to read</a>
+      <a href="#sessions" data-nav="sessions">Sessions</a>
+    </nav>
+  </div>
+</header>
 
-  <section class="title">
-    <h1>Which games should come next in the feed?</h1>
-    <p class="lede" id="lede">We replayed validation sessions from an earlier feed. For each one, two rankers ordered the same games, and we checked the order against what the player did.</p>
+<div class="wrap">
+  <section class="sec" id="result" aria-labelledby="hero-h">
+    <div class="g12 hero">
+      <div class="hero-copy">
+        <h1 id="hero-h">Which games should come next in the feed?</h1>
+        <p class="lede" id="lede">We replayed validation sessions from an earlier feed: two rankers ordered the same games, and we scored each order against what the player did.</p>
+      </div>
+      <div class="hero-result" aria-labelledby="result-h">
+        <h2 id="result-h">The result</h2>
+        <div class="scores">
+          <div class="score"><div class="k">Our ranker</div><div class="v" id="h-ours">&nbsp;</div><div class="w">NDCG@5, mean over <span id="h-n"></span> sessions</div></div>
+          <div class="score base"><div class="k">Popularity</div><div class="v" id="h-base">&nbsp;</div><div class="w">The baseline to beat</div></div>
+        </div>
+        <figure class="slicefig">
+          <svg id="forest" class="slices" viewBox="0 -30 560 134" role="img" aria-label="Interval chart of the NDCG gain over popularity"></svg>
+          <figcaption>Gain over popularity in NDCG@5; zero means no gain.</figcaption>
+        </figure>
+      </div>
+    </div>
     <figure class="kinds" aria-labelledby="kinds-h">
       <figcaption class="kinds-h"><span id="kinds-h">The 14 kinds of game in the catalogue</span><span class="fkey" id="fkey"></span></figcaption>
       <ul id="kinds"></ul>
     </figure>
   </section>
 
-  <section class="row" aria-labelledby="result-h">
-    <h2 id="result-h">The result</h2>
-    <div>
-      <div class="scores">
-        <div class="score"><div class="k">Our ranker</div><div class="v" id="h-ours">&nbsp;</div><div class="w">NDCG@5, mean over <span id="h-n"></span> sessions</div></div>
-        <div class="score"><div class="k">Popularity</div><div class="v" id="h-base">&nbsp;</div><div class="w">The baseline to beat</div></div>
+  <section class="sec" id="how" aria-labelledby="howto-h">
+    <div class="how">
+      <h2 class="sec-h" id="howto-h">How to read this</h2>
+      <div class="g12">
+        <div class="point">
+          <h3>Only the top five count</h3>
+          <div class="ranks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><b></b><span class="off">6</span><span class="off">7</span><span class="off">8</span></div>
+          <p>Each session opens with three games the player already saw, which the ranker uses as a hint. Both rankers order the rest; only places one to five score.</p>
+          <p class="signs">Under our ranking, <b>+</b> marks a reason that pushed a game up and <b>−</b> one that pulled it down.</p>
+        </div>
+        <div class="point">
+          <h3>What the player did</h3>
+          <ul class="legend">
+            <li><span class="g">0</span><span class="meter m0" aria-hidden="true"><i></i><i></i><i></i></span><span>Skipped or quit</span></li>
+            <li><span class="g">1</span><span class="meter m1" aria-hidden="true"><i></i><i></i><i></i></span><span>Played for 20 seconds or more</span></li>
+            <li><span class="g">2</span><span class="meter m2" aria-hidden="true"><i></i><i></i><i></i></span><span>Finished</span></li>
+            <li><span class="g">3</span><span class="meter m3" aria-hidden="true"><i></i><i></i><i></i></span><span>Replayed or shared</span></li>
+          </ul>
+          <p>A good order puts finished and replayed games near the top.</p>
+        </div>
+        <div class="point">
+          <h3>What it does not prove</h3>
+          <p id="cold-note">Players with two or fewer earlier sessions gain much less.</p>
+          <p id="sample-note" class="sub">The 40 sessions below are a picked sample.</p>
+        </div>
       </div>
-      <figure class="slicefig">
-        <svg id="forest" class="slices" viewBox="0 -30 820 134" role="img" aria-label="Interval chart of the NDCG gain over popularity"></svg>
-        <figcaption>Gain over popularity in NDCG@5; zero means no gain.</figcaption>
-      </figure>
     </div>
   </section>
-
-  <section class="row" aria-labelledby="howto-h">
-    <h2 id="howto-h">How to read this</h2>
-    <div class="cols">
-      <div>
-        <p>Each session starts with three games the player already saw. The ranker uses those as a hint. The rest of the games are the slate, and both rankers put the slate in order. Only the top five count toward the score.</p>
-        <p>The last column shows what the player did with each game, with the grade the score uses: 0 skipped or quit, 1 played for 20 seconds or more, 2 finished, 3 replayed or shared. A good order puts finished and replayed games near the top.</p>
-        <p>Under each game in our ranking, a plus sign marks a reason that pushed it up and a minus sign marks one that pulled it down.</p>
-      </div>
-      <div>
-        <p>Most of the gain comes from the player's own record with a game's family and mechanic. Taste decides what gets started, and fit decides what gets finished.</p>
-        <p id="cold-note">Players with two or fewer earlier sessions gain much less.</p>
-        <p id="sample-note">The 40 sessions here are a picked sample.</p>
-      </div>
-    </div>
-  </section>
-
-  <main class="workspace" id="app">
-    <aside class="picker" aria-label="Sessions">
-      <h2>Sessions</h2>
-      <div class="filters" role="group" aria-label="Filter sessions" id="filters"></div>
-      <label class="mobile-select"><span class="sr-only">Choose a session</span><select id="sselect"></select></label>
-      <div class="slist" id="slist"></div>
-    </aside>
-    <section class="session" id="session" aria-live="polite"></section>
-  </main>
-
-  <footer class="row foot" aria-labelledby="foot-h">
-    <h2 id="foot-h">About the data</h2>
-    <div>
-      <p>This is an offline replay. The slates are the games an earlier feed chose to show, and the outcomes are what players did with them in that feed. A ranker that would have shown different games cannot be judged here. The numbers measure how well each ranker orders games that were already on screen.</p>
-      <p>Reason labels come from the biggest pushes and pulls on each game's score, grouped and put in plain words. They describe what moved the ranker's score and say nothing about the player's motives.</p>
-      <p>There is no game art, so each game is described by its family, mechanic and difficulty.</p>
-    </div>
-  </footer>
 </div>
+
+<section class="band" id="sessions" aria-label="Sessions">
+  <div class="wrap">
+    <main class="g12 workspace" id="app">
+      <aside class="picker" aria-label="Session list">
+        <h2>Sessions</h2>
+        <div class="filters" role="group" aria-label="Filter sessions" id="filters"></div>
+        <label class="mobile-select"><span class="sr-only">Choose a session</span><select id="sselect"></select></label>
+        <div class="slist" id="slist"></div>
+      </aside>
+      <section class="session" id="session" aria-live="polite"></section>
+    </main>
+  </div>
+</section>
+
+<footer class="foot">Atoms ranking replay, validation sessions</footer>
 
 <script>
 const OUTCOME = ["Skipped", "Played", "Finished", "Replayed"];
@@ -379,10 +449,10 @@ function renderHeadline(h) {
     { label: "Cold users", n: h.cold.sessions, d: h.cold.diff, lo: h.cold.ci_low, hi: h.cold.ci_high },
   ];
   const svgEl = document.getElementById("forest");
-  const W = Math.max(300, Math.min(820, Math.round(svgEl.parentElement.clientWidth || 820))), narrow = W < 520;
+  const W = Math.max(280, Math.min(820, Math.floor(svgEl.parentElement.getBoundingClientRect().width || 560))), narrow = W < 460;
   const top = narrow ? 44 : 30, H = 104 + top;
-  svgEl.setAttribute("viewBox", `0 ${-top} ${W} ${H}`);
-  const labW = narrow ? 92 : 150, nX = labW + (narrow ? 22 : 30), valW = narrow ? 48 : 60;
+  svgEl.setAttribute("viewBox", `0 ${-top} ${W} ${H}`); svgEl.setAttribute("width", W); svgEl.setAttribute("height", H);
+  const labW = narrow ? 92 : 110, nX = labW + (narrow ? 22 : 26), valW = narrow ? 48 : 56;
   const x0 = nX + 18, x1 = W - valW, lo = -0.05, hi = 0.20, X = v => x0 + (v - lo) / (hi - lo) * (x1 - x0);
   const ticks = narrow ? [0, 0.10, 0.20] : [-0.05, 0, 0.05, 0.10, 0.15, 0.20];
   let svg = "";
@@ -392,7 +462,7 @@ function renderHeadline(h) {
   });
   svg += `<text class="colh" x="${nX}" y="11" text-anchor="end">${narrow ? "n" : "sessions"}</text>`;
   // inline key above the chart
-  const kx = narrow ? 0 : x0, ky = narrow ? -30 : -16;
+  const kx = 0, ky = narrow ? -30 : -16;
   svg += `<g class="key"><rect class="bar" x="${kx}" y="${ky - 5}" width="16" height="8" rx="1.5"/><text x="${kx + 21}" y="${ky + 2}">measured gain</text>` +
          `<rect class="band" x="${kx + 118}" y="${ky - 3}" width="16" height="4" rx="1.5"/><text x="${kx + 139}" y="${ky + 2}">likely range (95%)</text>` +
          (rows.some(r => r.lo <= 0 && r.hi >= 0) ? `<text class="keycross" x="${narrow ? 0 : kx + 268}" y="${narrow ? ky + 18 : ky + 2}">range crossing 0 = not proven</text>` : "") + `</g>`;
@@ -410,10 +480,10 @@ function renderHeadline(h) {
   svgEl.innerHTML = svg;
   const c = h.cold;
   document.getElementById("cold-note").innerHTML =
-    `<span class="cold-word">Players with two or fewer earlier sessions gain much less:</span> ${sgn(c.diff)} on ${c.sessions} sessions, with an interval from ${sgn(c.ci_low)} to ${sgn(c.ci_high)}. That interval includes zero, so for these players we can't say the ranker beats popularity.`;
+    `<span class="cold-word">Cold users gain ${sgn(c.diff)}, range ${sgn(c.ci_low)} to ${sgn(c.ci_high)}.</span> Players with two or fewer earlier sessions (${c.sessions} sessions): the range includes zero, so for them the gain is not proven.`;
   const sm = DATA.sample;
   document.getElementById("sample-note").textContent =
-    `The 40 sessions below were picked, so they are not typical. They are the ${sm.win} biggest wins and the ${sm.loss} biggest losses, plus ${sm.cold} cold-user sessions and ${sm.new_game} sessions with a brand-new game drawn at random. The averages above cover all ${h.sessions} sessions. The filters count every one of these 40 where our score is above or below popularity, so \"Ours higher\" also includes some cold-user and new-game sessions.`;
+    `The 40 sessions below are a picked sample, not typical ones: the ${sm.win} biggest wins, the ${sm.loss} biggest losses, and ${sm.cold} cold-user and ${sm.new_game} new-game sessions drawn at random. The averages above cover all ${h.sessions}.`;
 }
 
 function renderFilters() {
@@ -526,12 +596,22 @@ document.addEventListener("mouseover", e => {
   if (c) document.querySelectorAll(`.grow[data-g="${c.dataset.g}"]`).forEach(x => x !== c && x.classList.add("twin"));
 });
 
+// top bar: mark the section in view
+const NAV = [...document.querySelectorAll(".nav a")];
+function markNav() {
+  const y = window.scrollY + Math.min(window.innerHeight * 0.35, 320);
+  let cur = "result";
+  ["how", "sessions"].forEach(id => { const el = document.getElementById(id); if (el && el.offsetTop <= y) cur = id; });
+  NAV.forEach(a => a.setAttribute("aria-current", String(a.dataset.nav === cur)));
+}
+addEventListener("scroll", markNav, { passive: true }); markNav();
+
 readURL();
 fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
   DATA = d; renderHeadline(d.headline); render();
   let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => renderHeadline(d.headline), 150); });
 }).catch(err => {
-  document.getElementById("app").innerHTML = `<div class="err">The session data did not load (${esc(err.message)}). Serve the project folder with <code>node serve.mjs</code> and open http://localhost:3000/demo/.</div>`;
+  document.getElementById("app").innerHTML = `<div class="err">The session data did not load (${esc(err.message)}). Reload the page, or serve this folder over HTTP so <code>data.json</code> can load.</div>`;
 });
 </script>
 </body>

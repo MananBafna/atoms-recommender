@@ -62,7 +62,7 @@ The online path reads session features on every request, so ranking adapts withi
 
 ## Prototype
 
-One command rebuilds the prototype in about 35 s (`prototype/README.md`). The demo (`demo/index.html`) shows 40 validation sessions ranked both ways: run `node serve.mjs` and open http://localhost:3000/demo/.
+The code is at github.com/MananBafna/atoms-recommender, and one command rebuilds every number (`prototype/README.md`). The live demo at atoms-ranking-replay.vercel.app shows 40 validation sessions ranked both ways.
 
 <!-- card -->
 Features for a session use only events before it, plus its own three-game prefix. Validation features never read `val_events.csv`, which holds the validation outcomes.

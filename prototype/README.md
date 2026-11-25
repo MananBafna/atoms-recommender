@@ -6,7 +6,7 @@ impressions. Python 3 with numpy and pandas only.
 ## Run
 
     cd prototype
-    python run.py                                   # about 30 s end to end, prints stage timings
+    python run.py
     python -m unittest discover -s tests -v
     python ../data/evaluate.py --split val --rankings out/rankings_val.csv
 
@@ -22,7 +22,7 @@ Outputs are `out/rankings_val.csv`, `out/metrics.json`, `out/ablation.csv`, `out
 | This model (pointwise expected gain, l2 = 0.1) | 0.5209 |
 | Paired bootstrap difference (2,000 resamples, seed 0) | +0.1178, 95% CI [+0.0921, +0.1446] |
 
-Scoring latency per validation slate (features plus score, warm state, 814 slates): p50 0.85 ms, p99 2.25 ms in the latest run. Scoring one validation target against all 200 games of the catalogue takes p50 2.28 ms and p99 4.71 ms over the same 814 targets, which is about 0.011 ms per game in this implementation. The full `python run.py` takes about 35 s on this machine (`runtime_seconds` in `out/metrics.json`). Timings vary a little from run to run.
+Scoring latency per validation slate (features plus score, warm state, 814 slates): p50 0.85 ms, p99 2.25 ms in the latest run. Scoring one validation target against all 200 games of the catalogue takes p50 2.28 ms and p99 4.71 ms over the same 814 targets, which is about 0.011 ms per game in this implementation. Timings vary a little from run to run.
 
 The holdout (pseudo-sessions on days 20 to 23, model fitted on days 7 to 19) chose the variant:
 
