@@ -183,7 +183,16 @@ body {
 .tbtn[aria-pressed="true"]:active, .tbtn[aria-selected="true"]:active, .tbtn[aria-current="true"]:active { background: var(--paper-3); }
 .tbtn .ct { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13px; font-weight: 400; color: var(--ink-2); margin-left: 5px; }
 
-.filters { display: flex; flex-wrap: wrap; gap: 2px; margin: 0 -8px; padding-bottom: var(--s3); border-bottom: 1px solid var(--rule); }
+.filters { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--ink); margin-bottom: var(--s3); }
+.filters .fbtn { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 0; text-decoration: none; font-size: 14px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.filters .fbtn:nth-child(2n+1):not(:first-child) { border-right: 0; }
+.filters .fbtn:first-child { grid-column: 1 / -1; border-right: 0; }
+.filters .fbtn:nth-last-child(-n+2):not(:first-child) { border-bottom: 0; }
+.filters .fbtn:hover { background: var(--paper-3); }
+.filters .fbtn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.filters .fbtn[aria-pressed="true"] .ct { color: var(--paper); opacity: .75; }
+.filters .fbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
+.filters .fbtn[aria-pressed="true"]:focus-visible { outline-color: var(--paper); }
 
 .mobile-select { display: none; margin-top: var(--s3); }
 @media (max-width: 1100px) { .mobile-select { display: block; } .slist { display: none; } }
@@ -527,7 +536,7 @@ function gameRow(g, which) {
 function column(s, which) {
   const key = which === "ours" ? "rank_ours" : "rank_base";
   const games = [...s.slate].sort((a, b) => a[key] - b[key]);
-  const n = state.all ? games.length : Math.min(games.length, 8);
+  const n = games.length;
   let html = "";
   games.slice(0, n).forEach((g, i) => {
     html += gameRow(g, which);
@@ -544,7 +553,7 @@ function renderSession() {
     s.is_cold_user ? '<span class="cold-word">Cold user.</span>' : "",
     s.has_zero_history_game ? "The slate has a game with no play history." : "",
   ].filter(Boolean).join(" ");
-  const more = s.slate.length > 8 ? `<button class="more" type="button" id="more">${state.all ? "Show the top 8 only" : `Show all ${s.slate.length} games`}</button>` : "";
+  const more = "";
   el.innerHTML = `<div class="reveal">
     <div class="shead">
       <div>
