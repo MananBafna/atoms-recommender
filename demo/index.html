@@ -85,6 +85,31 @@ body {
 .cols p + p { margin-top: var(--s3); }
 .cold-word { color: var(--accent); font-weight: 600; }
 
+
+/* ---------- pictograms: one 24-unit grid, 2-unit strokes, flat ink fills; tile tint = family ---------- */
+.f-action { --tb: #DDC59C; } .f-music { --tb: #CDBDD4; } .f-puzzle { --tb: #B2CCBD; } .f-strategy { --tb: #B8C4D3; } .f-words { --tb: #D0D49C; }
+.tile { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 3px; background: var(--tb); flex: none; }
+.tile svg { width: 22px; height: 22px; display: block; fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.tile .f { fill: var(--ink); stroke: none; }
+.tile .bg { fill: var(--tb); }
+.tile .tx { fill: var(--ink); stroke: none; font-family: var(--num); font-weight: 600; font-size: 8px; text-anchor: middle; }
+.tile .tx.inv { fill: var(--tb); }
+.tile.lg { width: 44px; height: 44px; } .tile.lg svg { width: 28px; height: 28px; }
+
+.kinds { margin: var(--s6) 0 0; max-width: 980px; }
+.kinds-h { font-size: 14px; font-weight: 700; padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); line-height: 1.5; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s1) var(--s4); }
+.fkey { display: flex; flex-wrap: wrap; gap: 2px var(--s3); font-weight: 400; font-size: 13px; color: var(--ink-2); }
+.fkey span { display: inline-flex; align-items: center; gap: 5px; }
+.fkey i { width: 10px; height: 10px; border-radius: 2px; background: var(--tb); }
+.kinds ul { list-style: none; margin: 0; padding: var(--s4) 0 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s4) var(--s3); }
+.kinds li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s2); font-size: 13px; line-height: 1.3; color: var(--ink); }
+@media (max-width: 760px) { .kinds ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* outcome meter: 0 to 3 filled segments, the grade the score uses */
+.meter { display: inline-flex; gap: 2px; margin-right: 7px; vertical-align: -1px; }
+.meter i { width: 7px; height: 11px; border: 1px solid var(--ink-2); }
+.m1 i:nth-child(1), .m2 i:nth-child(-n+2), .m3 i { background: var(--ink); border-color: var(--ink); }
+
 /* ---------- workspace ---------- */
 .workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); align-items: start; border-top: 1px solid var(--ink); padding: var(--s4) 0 var(--s7); }
 @media (max-width: 1100px) { .workspace { grid-template-columns: minmax(0, 1fr); gap: var(--s5); } }
@@ -144,11 +169,11 @@ body {
 .prefix { margin-bottom: var(--s5); }
 .prefix-title { font-size: 14px; font-weight: 700; padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); line-height: 1.5; }
 .prefix-title span { font-weight: 400; color: var(--ink-2); }
-.pline { display: grid; grid-template-columns: 28px minmax(0, 1.2fr) minmax(0, 1.4fr) 118px; gap: 0 var(--s3); padding: 6px 0; border-bottom: 1px solid var(--rule-2); align-items: baseline; font-size: 14px; }
+.pline { display: grid; grid-template-columns: 22px 44px minmax(0, 1.2fr) minmax(0, 1.4fr) 118px; gap: 0 var(--s3); padding: var(--s2) 0; border-bottom: 1px solid var(--rule-2); align-items: center; font-size: 14px; }
 .pline .pos-n { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; color: var(--ink-2); }
 .pline .pt { font-weight: 600; }
 .pline .pa { color: var(--ink-2); }
-@media (max-width: 640px) { .pline { grid-template-columns: 22px minmax(0, 1fr) auto; } .pline .pa { grid-column: 2; grid-row: 2; font-size: 13px; } }
+@media (max-width: 640px) { .pline { grid-template-columns: 18px 44px minmax(0, 1fr) auto; } .pline .pos-n, .pline .tile { grid-row: span 2; } .pline .pt { align-self: end; } .pline .pa { grid-column: 3; grid-row: 2; font-size: 13px; align-self: start; } .pline .out { grid-column: 4; grid-row: 1; align-self: end; } }
 
 .mtabs { display: none; gap: 2px; margin: 0 0 var(--s3) -8px; }
 @media (max-width: 760px) { .mtabs { display: flex; } }
@@ -162,9 +187,11 @@ body {
 .col-head .ndcg b { color: var(--ink); font-weight: 500; font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
 
 /* a ranked list is a ledger: rank, game and attributes, reasons, outcome */
-.grow { display: grid; grid-template-columns: 28px minmax(0, 1fr) 104px; gap: 2px var(--s3); padding: 9px 0 10px; border-bottom: 1px solid var(--rule-2); align-items: baseline; }
+.grow { display: grid; grid-template-columns: 24px 32px minmax(0, 1fr) 108px; gap: 2px var(--s3); padding: 9px 0 10px; border-bottom: 1px solid var(--rule-2); align-items: baseline; }
 .grow .rk { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 15px; color: var(--ink); }
 .grow .body { min-width: 0; }
+.grow .tile { align-self: start; margin-top: 1px; }
+.grow.dim .tile { opacity: .7; }
 .grow .t { font-weight: 700; font-size: 15px; line-height: 1.35; text-decoration: underline transparent; text-underline-offset: 3px; transition: text-decoration-color .15s var(--ease-out); }
 .grow .a { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 .grow .a .nohist { color: var(--ink); font-weight: 600; }
@@ -178,8 +205,8 @@ body {
 .out .og { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13px; margin-right: 6px; }
 .out.r2, .out.r3 { color: var(--ink); font-weight: 600; }
 .out.r3 { font-weight: 700; }
-.cutoff { font-size: 13px; color: var(--ink-2); padding: 6px 0 var(--s2) 40px; border-top: 1px solid var(--ink); margin-top: -1px; line-height: 1.4; }
-@media (max-width: 420px) { .grow { grid-template-columns: 24px minmax(0, 1fr); } .grow .out { grid-column: 2; } .cutoff { padding-left: 36px; } }
+.cutoff { font-size: 13px; color: var(--ink-2); padding: 6px 0 var(--s2) 80px; border-top: 1px solid var(--ink); margin-top: -1px; line-height: 1.4; }
+@media (max-width: 420px) { .grow { grid-template-columns: 20px 32px minmax(0, 1fr); } .grow .out { grid-column: 3; } .cutoff { padding-left: 76px; } }
 
 .more {
   appearance: none; margin-top: var(--s4); border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 0;
@@ -209,6 +236,10 @@ body {
   <section class="title">
     <h1>Which games should come next in the feed?</h1>
     <p class="lede" id="lede">We replayed validation sessions from an earlier feed. For each one, two rankers ordered the same games, and we checked the order against what the player did.</p>
+    <figure class="kinds" aria-labelledby="kinds-h">
+      <figcaption class="kinds-h"><span id="kinds-h">The 14 kinds of game in the catalogue</span><span class="fkey" id="fkey"></span></figcaption>
+      <ul id="kinds"></ul>
+    </figure>
   </section>
 
   <section class="row" aria-labelledby="result-h">
@@ -269,8 +300,39 @@ const f3 = x => x.toFixed(3);
 const sgn = (x, d = 3) => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toFixed(d);
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
+const FAM = { action: "Action", music: "Music", puzzle: "Puzzle", strategy: "Strategy", words: "Words" };
+// mechanic: [family, plain label, drawing on a 24-unit grid]
+const KIND = {
+  "aim-shoot": ["action", "Aim and shoot", '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.2" class="f"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/>'],
+  "physics-launch": ["action", "Physics launch", '<path d="M2 21.5h20"/><path d="M4 18C7 6 15 4 19.5 13" stroke-dasharray="1.5 3.5"/><circle cx="20" cy="16.8" r="2.6" class="f"/><path d="M2.5 18.5l3-3"/>'],
+  "platform-jump": ["action", "Platform jump", '<path d="M1.5 20.5h7M15.5 20.5h7"/><circle cx="12" cy="3.5" r="2" class="f"/><path d="M12 7v5l-3 3M12 12l3.5 1.5M8.5 8.5l3.5-1 3.5-1.5"/>'],
+  "runner-dodge": ["action", "Runner and dodge", '<circle cx="13" cy="3.5" r="2" class="f"/><path d="M12.5 7l-2 6 3 3v4.5M10.5 13l-3.5 2M7.5 8.5l4.5-1.5 3.5 2.5"/><path d="M1.5 8h3M1 12h3M2.5 16h2.5"/><rect x="17.5" y="15" width="4.5" height="6.5" class="f"/>'],
+  "timing-tap": ["action", "Timing tap", '<circle cx="12" cy="8" r="6"/><circle cx="12" cy="8" r="1.4" class="f"/><rect x="9.8" y="9.5" width="4.4" height="13" rx="2.2" class="bg"/><path d="M2.5 3l1.5 1.5M21.5 3L20 4.5"/>'],
+  "rhythm": ["music", "Rhythm", '<circle cx="6" cy="17.5" r="3" class="f"/><path d="M8.5 17V3.5l5 2.5"/><path d="M15.5 21v-6M19 21V10M22.5 21v-4"/>'],
+  "match-three": ["puzzle", "Match three", '<path d="M4.5 7.5l3.3 4.5-3.3 4.5-3.3-4.5z" class="f"/><path d="M12 7.5l3.3 4.5-3.3 4.5-3.3-4.5z" class="f"/><path d="M19.5 7.5l3.3 4.5-3.3 4.5-3.3-4.5z" class="f"/><path d="M2 20.5h20"/>'],
+  "merge": ["puzzle", "Merge", '<rect x="1.5" y="2.5" width="7" height="7"/><rect x="1.5" y="14.5" width="7" height="7"/><path d="M8.5 6h2.5l3 6M8.5 18h2.5l3-6"/><rect x="14" y="7.75" width="8.5" height="8.5" class="f"/>'],
+  "number-logic": ["puzzle", "Number logic", '<rect x="2.5" y="2.5" width="19" height="19"/><path d="M8.83 2.5v19M15.17 2.5v19M2.5 8.83h19M2.5 15.17h19"/><rect x="2.5" y="2.5" width="6.33" height="6.33" class="f"/><rect x="15.17" y="15.17" width="6.33" height="6.33" class="f"/><text class="tx" x="12" y="14.9">7</text>'],
+  "spatial-puzzle": ["puzzle", "Spatial puzzle", '<path d="M2 2h15v5h-5v5H7V7H2z" class="f"/><path d="M2.5 17.5h10v-5h5v9h-15z"/>'],
+  "build-manage": ["strategy", "Build and manage", '<path d="M5 21.5V2.5h17M5 6.5l4-4M17 2.5v3.5"/><rect x="14" y="6" width="6" height="4" class="f"/><rect x="10" y="15" width="11" height="6.5"/><path d="M15.5 15v6.5M2 21.5h20"/>'],
+  "card-strategy": ["strategy", "Card strategy", '<g transform="rotate(-22 12 21)"><rect x="8" y="4" width="8" height="12" rx="1" class="bg"/></g><g transform="rotate(22 12 21)"><rect x="8" y="4" width="8" height="12" rx="1" class="bg"/></g><rect x="8" y="3.5" width="8" height="12" rx="1" class="bg"/><path d="M12 7.5l1.6 2-1.6 2-1.6-2z" class="f"/>'],
+  "trivia": ["words", "Trivia", '<path d="M3 3.5h18v13h-8l-4.5 4v-4H3z"/><path d="M9.8 8a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.1.9-1.1 1.8"/><circle cx="12" cy="14" r="1.1" class="f"/>'],
+  "word-guess": ["words", "Word guess", '<rect x="1" y="6.5" width="6.5" height="9.5"/><rect x="8.75" y="6.5" width="6.5" height="9.5" class="f"/><rect x="16.5" y="6.5" width="6.5" height="9.5"/><text class="tx" x="4.25" y="14">A</text><text class="tx inv" x="12" y="14">B</text><path d="M2 20h4.5M9.75 20h4.5M17.5 20h4.5"/>'],
+};
+const ORDER = Object.keys(KIND);
+function tile(mech, fam, lg) {
+  const k = KIND[mech], size = lg ? " lg" : "";
+  if (!k) return `<span class="tile f-${esc(fam)}${size}" aria-hidden="true"></span>`;
+  return `<span class="tile f-${k[0]}${size}" title="${k[1]}" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${k[2]}</svg></span>`;
+}
+const meter = rel => `<span class="meter m${rel}" aria-hidden="true"><i></i><i></i><i></i></span>`;
+function renderKinds() {
+  document.getElementById("kinds").innerHTML = ORDER.map(m => `<li>${tile(m, null, true)}<span>${KIND[m][1]}</span></li>`).join("");
+  document.getElementById("fkey").innerHTML = Object.entries(FAM).map(([k, v]) => `<span class="f-${k}"><i></i>${v}</span>`).join("");
+}
+renderKinds();
+
 function outcome(rel) {
-  return `<span class="out r${rel}" title="${OUTCOME_LONG[rel]}"><span class="og" aria-hidden="true">${rel}</span>${OUTCOME[rel]}<span class="sr-only">: ${OUTCOME_LONG[rel]}</span></span>`;
+  return `<span class="out r${rel}" title="${OUTCOME_LONG[rel]}">${meter(rel)}${OUTCOME[rel]}<span class="sr-only">: ${OUTCOME_LONG[rel]}</span></span>`;
 }
 function reasons(rs) {
   if (!rs.length) return '<span class="none">No strong reason either way</span>';
@@ -383,6 +445,7 @@ function gameRow(g, which) {
   const attrs = [`${cap(g.family)}, ${g.mechanic}`, `difficulty ${g.difficulty} of 5`, other].join(", ");
   return `<article class="grow ${rank <= 5 ? "top" : "dim"}" data-g="${g.game_id}">
     <span class="rk" aria-label="Rank ${rank}">${rank}</span>
+    ${tile(g.mechanic, g.family)}
     <div class="body">
       <div class="t">${esc(g.title)}</div>
       <div class="a">${attrs}${g.zero_history ? ', <span class="nohist">no play history</span>' : ""}</div>
@@ -425,7 +488,7 @@ function renderSession() {
     </div>
     <div class="prefix">
       <div class="prefix-title">The first three games of the session <span>(the ranker sees how these went)</span></div>
-      ${s.prefix.map((g, i) => `<div class="pline"><span class="pos-n">${i + 1}</span><span class="pt">${esc(g.title)}</span><span class="pa">${cap(g.family)}, ${g.mechanic}</span>${outcome(g.rel)}</div>`).join("") || '<div class="empty">No opening games were logged for this session.</div>'}
+      ${s.prefix.map((g, i) => `<div class="pline"><span class="pos-n">${i + 1}</span>${tile(g.mechanic, g.family, true)}<span class="pt">${esc(g.title)}</span><span class="pa">${cap(g.family)}, ${g.mechanic}</span>${outcome(g.rel)}</div>`).join("") || '<div class="empty">No opening games were logged for this session.</div>'}
     </div>
     <div class="mtabs" role="tablist" aria-label="Choose a ranking">
       <button class="tbtn mtab" type="button" role="tab" data-v="ours" aria-selected="${state.v === "ours"}">Our ranker</button>
