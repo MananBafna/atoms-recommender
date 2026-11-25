@@ -1,0 +1,462 @@
+{
+  "holdout": [
+    {
+      "variant": "pointwise",
+      "l2": 0.1,
+      "ndcg5": 0.5257537646850307
+    },
+    {
+      "variant": "pointwise",
+      "l2": 1.0,
+      "ndcg5": 0.5255391748726006
+    },
+    {
+      "variant": "pointwise",
+      "l2": 10.0,
+      "ndcg5": 0.5248045588105983
+    },
+    {
+      "variant": "pointwise",
+      "l2": 0.01,
+      "ndcg5": 0.5251881904054481
+    },
+    {
+      "variant": "pairwise",
+      "l2": 0.1,
+      "ndcg5": 0.5208485662219413
+    },
+    {
+      "variant": "pairwise",
+      "l2": 1.0,
+      "ndcg5": 0.5208485662219413
+    },
+    {
+      "variant": "pairwise",
+      "l2": 10.0,
+      "ndcg5": 0.5208485662219413
+    },
+    {
+      "variant": "pairwise",
+      "l2": 0.01,
+      "ndcg5": 0.5208485662219413
+    }
+  ],
+  "chosen": {
+    "variant": "pointwise",
+    "l2": 0.1
+  },
+  "val": {
+    "split": "val",
+    "sessions_scored": 604,
+    "ndcg@5": 0.5209,
+    "cold_users_ndcg@5": 0.4199,
+    "cold_user_sessions": 110,
+    "new_game_share@5": 0.0215,
+    "unranked_pairs": 0
+  },
+  "val_baseline": {
+    "split": "val",
+    "sessions_scored": 604,
+    "ndcg@5": 0.4032,
+    "cold_users_ndcg@5": 0.38,
+    "cold_user_sessions": 110,
+    "new_game_share@5": 0.0197,
+    "unranked_pairs": 0
+  },
+  "bootstrap": {
+    "mean_diff": 0.11778679200400673,
+    "ci_low": 0.09213996854131558,
+    "ci_high": 0.14462240943943278,
+    "ours": 0.5209382753498445,
+    "baseline": 0.40315148334583784,
+    "n_sessions": 604
+  },
+  "slices": {
+    "cold_users": {
+      "n_sessions": 110,
+      "ours": 0.41993526280450133,
+      "baseline": 0.37996712911527153,
+      "diff": 0.03996813368922985,
+      "ci_low": -0.008441034246966295,
+      "ci_high": 0.08926177202948456
+    },
+    "sessions_with_zero_history_game": {
+      "n_sessions": 152,
+      "ours": 0.5187227299078787,
+      "baseline": 0.3824281888719875,
+      "diff": 0.13629454103589117,
+      "ci_low": 0.07908558358804121,
+      "ci_high": 0.19400294873509427
+    },
+    "prefix_had_play": {
+      "n_sessions": 240,
+      "ours": 0.5057820836625783,
+      "baseline": 0.3675961466570276,
+      "diff": 0.13818593700555065,
+      "ci_low": 0.09875224134512682,
+      "ci_high": 0.17813174142520896
+    },
+    "prefix_no_play": {
+      "n_sessions": 364,
+      "ours": 0.5309313687700201,
+      "baseline": 0.426594562481317,
+      "diff": 0.10433680628870305,
+      "ci_low": 0.0687276103766447,
+      "ci_high": 0.1402712022820406
+    }
+  },
+  "pseudo_cold": {
+    "masked_games": 30,
+    "sessions_with_masked_game": 765,
+    "sessions_scored": 575,
+    "with_attribute_prior": 0.4985813147570137,
+    "prior_columns_at_global_mean": 0.49746606457660214,
+    "unmasked_history_reference": 0.5112099142759039,
+    "note": "model fitted on days 7-19; masked games lose all history rows; the quality features still fall back to the attribute prior inside the history state",
+    "global_rate_variant": 0.49899362072799514,
+    "global_rates_used": {
+      "r1": 0.13508949091162337,
+      "r2": 0.08668779162894352,
+      "r3": 0.045790096803398565
+    },
+    "masked_row_rank_pct": {
+      "rel_ge1": {
+        "n": 208,
+        "p_prior": 0.5569292744257379,
+        "p_global": 0.5285492090705005,
+        "p_pr_mean": 0.5328285055733555
+      },
+      "rel_0": {
+        "n": 1477,
+        "p_prior": 0.40027162541586003,
+        "p_global": 0.3818686317457533,
+        "p_pr_mean": 0.38342445268167125
+      }
+    },
+    "rank_pct_note": "share of the slate ranked below the game (1 = top); masked games only; global rates are computed on all of train, a constant, so not strictly point-in-time"
+  },
+  "latency_ms": {
+    "p50": 0.8532500360161066,
+    "p99": 2.2533149586524814,
+    "n_slates": 814,
+    "full_catalogue_200": {
+      "p50": 2.2835000418126583,
+      "p99": 4.708721028873697,
+      "n_targets": 814,
+      "n_games": 200
+    }
+  },
+  "worst_sessions": [
+    {
+      "session_id": "s006185",
+      "ndcg_ours": 0.0,
+      "ndcg_base": 1.0,
+      "note": "top-ranked g026 (rel 0); main contributing feature af_mech_r2 (+0.59, value 0.145)"
+    },
+    {
+      "session_id": "s006123",
+      "ndcg_ours": 0.0,
+      "ndcg_base": 1.0,
+      "note": "top-ranked g030 (rel 0); main contributing feature af_mech_r2 (+1.02, value 0.250)"
+    },
+    {
+      "session_id": "s005693",
+      "ndcg_ours": 0.0,
+      "ndcg_base": 1.0,
+      "note": "top-ranked g006 (rel 0); main contributing feature af_mech_r2 (+0.33, value 0.082)"
+    },
+    {
+      "session_id": "s005992",
+      "ndcg_ours": 0.06552281519378265,
+      "ndcg_base": 0.9173194127129571,
+      "note": "top-ranked g089 (rel 0); main contributing feature af_fam_r2 (+0.89, value 0.260)"
+    },
+    {
+      "session_id": "s005762",
+      "ndcg_ours": 0.0,
+      "ndcg_base": 0.6309297535714575,
+      "note": "top-ranked g084 (rel 0); main contributing feature af_mech_r2 (+0.49, value 0.121)"
+    },
+    {
+      "session_id": "s006003",
+      "ndcg_ours": 0.17376534287144002,
+      "ndcg_base": 0.7967075809905066,
+      "note": "top-ranked g120 (rel 0); main contributing feature q_r2 (+0.49, value 0.132)"
+    },
+    {
+      "session_id": "s005650",
+      "ndcg_ours": 0.38685280723454163,
+      "ndcg_base": 1.0,
+      "note": "top-ranked g133 (rel 0); main contributing feature fr_played (+0.34, value 3.000)"
+    },
+    {
+      "session_id": "s005409",
+      "ndcg_ours": 0.38685280723454163,
+      "ndcg_base": 1.0,
+      "note": "top-ranked g120 (rel 0); main contributing feature q_r2 (+0.48, value 0.132)"
+    },
+    {
+      "session_id": "s005881",
+      "ndcg_ours": 0.2633863994623149,
+      "ndcg_base": 0.8404085891102678,
+      "note": "top-ranked g167 (rel 0); main contributing feature af_mech_r2 (+1.22, value 0.299)"
+    },
+    {
+      "session_id": "s005966",
+      "ndcg_ours": 0.43067655807339306,
+      "ndcg_base": 1.0,
+      "note": "top-ranked g048 (rel 0); main contributing feature af_mech_r2 (+0.84, value 0.206)"
+    }
+  ],
+  "new_game_share": {
+    "ours": 0.0215,
+    "baseline": 0.0197
+  },
+  "falsification_user_swap": {
+    "ndcg5": 0.37214235454992955,
+    "ours": 0.5209382753498445,
+    "diff_vs_ours": -0.148795920799915,
+    "ci_low": -0.17800837464633218,
+    "ci_high": -0.12124634302237973,
+    "reference_quality_plus_prior": 0.41373442490323403,
+    "note": "user_id of each val session replaced by another session's user (permutation, seed 0, no fixed points); prefix and slate unchanged"
+  },
+  "holdout_leave_one_group_out": {
+    "full": 0.5257537646850307,
+    "n_sessions": 684,
+    "drop": {
+      "quality": {
+        "ndcg5": 0.5173028400595179,
+        "full_minus_drop": 0.008450924625512857,
+        "ci_low": -0.005996847378944249,
+        "ci_high": 0.022842527596922062
+      },
+      "prior": {
+        "ndcg5": 0.5237270855357214,
+        "full_minus_drop": 0.002026679149309328,
+        "ci_low": -0.004903954543397756,
+        "ci_high": 0.008474477550816685
+      },
+      "affinity": {
+        "ndcg5": 0.4372447266192933,
+        "full_minus_drop": 0.08850903806573737,
+        "ci_low": 0.0665686256548933,
+        "ci_high": 0.10942656105937774
+      },
+      "repeat": {
+        "ndcg5": 0.5253984959301329,
+        "full_minus_drop": 0.00035526875489791794,
+        "ci_low": -0.005914952883799576,
+        "ci_high": 0.0065509224501083185
+      },
+      "skill": {
+        "ndcg5": 0.5272521450164476,
+        "full_minus_drop": -0.0014983803314168335,
+        "ci_low": -0.007047079792002623,
+        "ci_high": 0.004350776011982061
+      },
+      "friends": {
+        "ndcg5": 0.521769184497401,
+        "full_minus_drop": 0.003984580187629752,
+        "ci_low": -0.003080119789075463,
+        "ci_high": 0.010857054425349186
+      },
+      "prefix": {
+        "ndcg5": 0.5263323535127099,
+        "full_minus_drop": -0.0005785888276792073,
+        "ci_low": -0.00688790848429195,
+        "ci_high": 0.006094921938423415
+      }
+    }
+  },
+  "skill_analysis": {
+    "completion_auc_holdout": {
+      "af_fam_r2": 0.6647125129281027,
+      "af_fam_r2+sk_p": 0.6843949500359258
+    },
+    "tapped_rows_train": 4798,
+    "tapped_rows_holdout": 1652,
+    "low_skill_hard_sessions": {
+      "n": 134,
+      "full": 0.5191120288996244,
+      "no_skill": 0.5161659817461908,
+      "diff": 0.0029460471534336944,
+      "ci_low": -0.012424348372054188,
+      "ci_high": 0.017690851218802497
+    },
+    "completion_auc_decomposition": {
+      "auc": {
+        "a_af_fam_r2": 0.6647125129281027,
+        "b_af_fam_r2+sk_p": 0.6843949500359258,
+        "c_af_fam_r2+q_r2": 0.684923139570396,
+        "d_af_fam_r2+q_r2+sk_p": 0.6923310715608296
+      },
+      "paired_bootstrap_95": {
+        "b_minus_a": {
+          "diff": 0.019682437107823025,
+          "ci_low": 0.0044538085991490005,
+          "ci_high": 0.03390609444226625,
+          "resamples": 2000
+        },
+        "d_minus_c": {
+          "diff": 0.007407931990433658,
+          "ci_low": 1.208815096173669e-06,
+          "ci_high": 0.01504979975771474,
+          "resamples": 2000
+        }
+      },
+      "sk_p_weight_model_d_standardised": 0.21508232403929528,
+      "sk_p_weight_sign_model_d": "positive",
+      "n_tapped_holdout_rows": 1652,
+      "note": "logistic fit (l2 1) on days 7-19 tapped rows, scored on days 20-23 tapped rows; bootstrap resamples rows, 2000 draws, seed 0"
+    },
+    "all_holdout_no_skill": 0.5272521450164476,
+    "note": "low-skill = Elo skill < -0.5 with a difficulty >= 4 game in the slate (sk_lowskill_hard)"
+  },
+  "zero_history_game_rows": {
+    "rel_ge1": {
+      "n": 25,
+      "p_ours": 0.618532212885154,
+      "p_base": 0.48880298786181137
+    },
+    "rel_0": {
+      "n": 185,
+      "p_ours": 0.4878101339343001,
+      "p_base": 0.5450415521027591
+    },
+    "rank_pct_note": "share of the slate ranked below the game (1 = top); val slate rows of games with 0 train impressions"
+  },
+  "ablation": [
+    {
+      "added_group": "quality",
+      "n_features": 5,
+      "val_ndcg5": 0.4105530042885303
+    },
+    {
+      "added_group": "prior",
+      "n_features": 9,
+      "val_ndcg5": 0.41373442490323403
+    },
+    {
+      "added_group": "affinity",
+      "n_features": 14,
+      "val_ndcg5": 0.5296463293988269
+    },
+    {
+      "added_group": "repeat",
+      "n_features": 16,
+      "val_ndcg5": 0.5254640730965495
+    },
+    {
+      "added_group": "skill",
+      "n_features": 19,
+      "val_ndcg5": 0.5250379846580684
+    },
+    {
+      "added_group": "friends",
+      "n_features": 21,
+      "val_ndcg5": 0.5228876754505419
+    },
+    {
+      "added_group": "prefix",
+      "n_features": 27,
+      "val_ndcg5": 0.5209382753498445
+    }
+  ],
+  "coefs": {
+    "r>=1": {
+      "q_r1": -0.10177359959000569,
+      "q_r2": 0.19345439451900637,
+      "q_r3": -0.06394238057745022,
+      "q_watch": 0.2873672345958673,
+      "q_logn": -0.05724361945140419,
+      "pr_r1": -0.04216754715180402,
+      "pr_r2": 0.06779276450773192,
+      "pr_onestar": -0.017659831014775685,
+      "pr_age": 0.028714618321534737,
+      "af_fam_r1": 0.09947195374505743,
+      "af_fam_r2": 0.17550998288524658,
+      "af_mech_r1": 0.0294794572378099,
+      "af_mech_r2": 0.2225769120750427,
+      "af_depth_x_fam": -0.008214541680701137,
+      "rp_seen": -0.01841515078028129,
+      "rp_best": 0.03315830065274758,
+      "sk_p": -0.0827591105575519,
+      "sk_gap": 0.020980315518955107,
+      "sk_lowskill_hard": -0.024340251966719607,
+      "fr_played": 0.04425133815345788,
+      "fr_finished": 0.008208373774085016,
+      "px_fam_play": 0.013604504116359783,
+      "px_fam_finish": 0.005693202813260273,
+      "px_fam_quit": 0.01167846284380837,
+      "px_fam_skip": -0.01524424337434999,
+      "px_mech_play": 0.07051810857681032,
+      "px_mech_quit": 0.008249794355718902
+    },
+    "r>=2": {
+      "q_r1": -0.2435905987207975,
+      "q_r2": 0.39828165061008236,
+      "q_r3": -0.05539347682004305,
+      "q_watch": 0.20739814202153134,
+      "q_logn": 0.04809565914226171,
+      "pr_r1": 0.03205460279285476,
+      "pr_r2": 0.037800691673056414,
+      "pr_onestar": -0.044254015748143256,
+      "pr_age": -0.047057672056745374,
+      "af_fam_r1": 0.13193584508471948,
+      "af_fam_r2": 0.24806290683177087,
+      "af_mech_r1": 0.013140810782502359,
+      "af_mech_r2": 0.2936672891306414,
+      "af_depth_x_fam": -0.020632779607143076,
+      "rp_seen": -0.05563835758188054,
+      "rp_best": 0.05382004399293452,
+      "sk_p": -0.10762079426335229,
+      "sk_gap": -0.012630077244685121,
+      "sk_lowskill_hard": -0.029060931243029147,
+      "fr_played": 0.0840763660666413,
+      "fr_finished": 0.0018799461081532996,
+      "px_fam_play": 0.023358021792596852,
+      "px_fam_finish": 0.0025691816637122746,
+      "px_fam_quit": 0.009792623535590217,
+      "px_fam_skip": -0.004435963539729518,
+      "px_mech_play": 0.07273264538001356,
+      "px_mech_quit": 0.005016834146070621
+    },
+    "r=3": {
+      "q_r1": -0.23122114096866847,
+      "q_r2": 0.3045702718962846,
+      "q_r3": 0.0010719497902733344,
+      "q_watch": 0.1997017810593184,
+      "q_logn": 0.09003295606854742,
+      "pr_r1": 0.1301049747923832,
+      "pr_r2": -0.04873298811420329,
+      "pr_onestar": -0.056649190532829914,
+      "pr_age": -0.0775508486043705,
+      "af_fam_r1": 0.14471246434801188,
+      "af_fam_r2": 0.2290412822422896,
+      "af_mech_r1": 0.09981149445179761,
+      "af_mech_r2": 0.25979225920010135,
+      "af_depth_x_fam": -0.050215315308435995,
+      "rp_seen": -0.010375744452809546,
+      "rp_best": 0.03604982566345263,
+      "sk_p": -0.10761971308515694,
+      "sk_gap": -0.0030479397364373685,
+      "sk_lowskill_hard": -0.05453553694107029,
+      "fr_played": 0.08408224185137765,
+      "fr_finished": 0.000563091212873884,
+      "px_fam_play": 0.01857943722111449,
+      "px_fam_finish": 0.03038929374887806,
+      "px_fam_quit": -0.011761772414801714,
+      "px_fam_skip": 0.03167995816120187,
+      "px_mech_play": 0.10134910312153365,
+      "px_mech_quit": 0.030572096832346393
+    }
+  },
+  "test": {
+    "rows": 9724,
+    "sessions": 837,
+    "train_pseudo_sessions": 4553,
+    "top5_overlap_with_baseline": 0.6814814814814815
+  },
+  "runtime_seconds": 34.7
+}

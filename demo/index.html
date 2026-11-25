@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atoms ranking replay</title>
+<meta name="description" content="Replay of 40 validation sessions: our ranker against a popularity baseline, scored by what each player did.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* Same notebook as the report and summary (design/doc/doc.css): pale computation-pad green,
+   green-black ink, one red accent for what matters (the cold-user interval that includes zero). */
+:root {
+  --paper: #EBEFE8;
+  --paper-2: #E1E7DE;
+  --paper-3: #D5DDD1;
+  --ink: #1E2622;
+  --ink-2: #56605A;
+  --rule: #9AA59D;
+  --rule-2: #C3CBC2;
+  --accent: #B02A17;
+  --serif: "Young Serif", Georgia, serif;
+  --sans: "Schibsted Grotesk", "Segoe UI", Arial, sans-serif;
+  --num: "Funnel Sans", "Schibsted Grotesk", Arial, sans-serif;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --spring: cubic-bezier(.3, 1.15, .4, 1);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--paper); }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: 15px; line-height: 1.6;
+  font-kerning: normal;
+}
+.mono, .num { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.wrap { max-width: 1360px; margin: 0 auto; padding: 0 var(--s5); }
+@media (max-width: 640px) { .wrap { padding: 0 var(--s4); } }
+
+/* ---------- head ---------- */
+.runhead { display: flex; justify-content: space-between; gap: var(--s4); padding: var(--s5) 0 var(--s2); border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--ink-2); }
+.runhead b { color: var(--ink); font-weight: 600; }
+.title { padding: var(--s7) 0 var(--s6); }
+.title h1 {
+  font-family: var(--serif); font-weight: 400; margin: 0; color: var(--ink);
+  font-size: clamp(34px, 4.4vw, 54px); line-height: 1.08; letter-spacing: -.03em; max-width: 20ch;
+}
+.title .lede { margin: var(--s4) 0 0; color: var(--ink); max-width: 62ch; font-size: 17px; line-height: 1.6; }
+
+/* ---------- ruled rows, as in the summary: label left, content right ---------- */
+.row { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--s5); border-top: 1px solid var(--ink); padding: var(--s4) 0 var(--s6); }
+@media (max-width: 860px) { .row { grid-template-columns: 1fr; gap: var(--s3); } }
+.row > h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.2; letter-spacing: -.01em; margin: 0; padding-top: 2px; }
+
+/* result */
+.scores { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s7); align-items: baseline; }
+.score .k { font-size: 14px; color: var(--ink-2); }
+.score .v { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-weight: 500; font-size: 30px; line-height: 1.2; letter-spacing: -.02em; min-width: 5ch; }
+.score .w { font-size: 13px; color: var(--ink-2); }
+.result-text { margin: var(--s4) 0 0; max-width: 66ch; }
+.slicefig { margin: var(--s5) 0 0; max-width: 820px; }
+.slicefig svg { display: block; width: 100%; height: auto; overflow: visible; }
+.slicefig figcaption { font-size: 13px; color: var(--ink-2); margin-top: var(--s2); max-width: 66ch; }
+.slices text { font-family: var(--sans); font-size: 13px; fill: var(--ink); }
+.slices .n, .slices .val, .slices .tick, .slices .colh { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 12px; }
+.slices .tick, .slices .colh { fill: var(--ink-2); }
+.slices .grid { stroke: var(--rule-2); stroke-width: 1; }
+.slices .zero { stroke: var(--ink); stroke-width: 1.2; }
+.slices .band { fill: var(--ink); fill-opacity: .22; }
+.slices .key text { fill: var(--ink-2); font-size: 12px; }
+.slices .key .keycross { fill: var(--accent); }
+.slices .bar { fill: var(--ink); }
+.slices .cross .band { fill: var(--accent); fill-opacity: .35; }
+.slices .cross .bar, .slices .cross .val, .slices .cross .lab, .slices .cross .n { fill: var(--accent); }
+
+/* how to read */
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3) var(--s6); }
+@media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
+.cols p { margin: 0; max-width: 62ch; }
+.cols p + p { margin-top: var(--s3); }
+.cold-word { color: var(--accent); font-weight: 600; }
+
+/* ---------- workspace ---------- */
+.workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); align-items: start; border-top: 1px solid var(--ink); padding: var(--s4) 0 var(--s7); }
+@media (max-width: 1100px) { .workspace { grid-template-columns: minmax(0, 1fr); gap: var(--s5); } }
+.picker { min-width: 0; position: sticky; top: var(--s4); display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+@media (max-width: 1100px) { .picker { position: static; max-height: none; } }
+.picker h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.2; margin: 0 0 var(--s3); }
+
+/* one shared "current" treatment for filters, session rows and the phone tabs:
+   paper-2 fill, ink text, weight 700. Hover underlines, press darkens the fill. */
+.tbtn {
+  appearance: none; border: 0; background: transparent; color: var(--ink-2); cursor: pointer;
+  font: 500 14px/1.2 var(--sans); padding: 7px 8px; border-radius: 0; white-space: nowrap;
+  text-decoration: underline transparent; text-underline-offset: 3px; text-decoration-thickness: 1px;
+  transition: background-color .15s var(--ease-out), color .15s var(--ease-out), text-decoration-color .15s var(--ease-out);
+}
+.tbtn:hover { color: var(--ink); text-decoration-color: var(--ink); }
+.tbtn:active { background: var(--paper-3); }
+.tbtn[aria-pressed="true"], .tbtn[aria-selected="true"], .tbtn[aria-current="true"] { background: var(--paper-2); color: var(--ink); font-weight: 700; }
+.tbtn[aria-pressed="true"]:active, .tbtn[aria-selected="true"]:active, .tbtn[aria-current="true"]:active { background: var(--paper-3); }
+.tbtn .ct { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13px; font-weight: 400; color: var(--ink-2); margin-left: 5px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 2px; margin: 0 -8px; padding-bottom: var(--s3); border-bottom: 1px solid var(--rule); }
+
+.mobile-select { display: none; margin-top: var(--s3); }
+@media (max-width: 1100px) { .mobile-select { display: block; } .slist { display: none; } }
+.mobile-select select {
+  width: 100%; font: 500 16px var(--sans); color: var(--ink); background: var(--paper-2);
+  border: 1px solid var(--rule); border-radius: 0; padding: 10px 12px; cursor: pointer;
+  transition: border-color .15s var(--ease-out);
+}
+.mobile-select select:hover { border-color: var(--ink); }
+
+.slist { overflow-y: auto; padding-bottom: var(--s3); margin: 0 -8px; }
+.grp { font-size: 13px; font-weight: 700; color: var(--ink); padding: var(--s4) 8px var(--s1); line-height: 1.4; border-bottom: 1px solid var(--rule); }
+.srow {
+  display: grid; width: 100%; text-align: left; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--s2); align-items: baseline;
+  padding: 7px 8px; border-bottom: 1px solid var(--rule-2); white-space: normal;
+}
+.srow .sid { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 14px; color: var(--ink); }
+.srow .meta { grid-column: 1 / span 2; font-size: 12.5px; color: var(--ink-2); font-weight: 400; line-height: 1.4; }
+.srow .delta { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13.5px; color: var(--ink); font-weight: 500; }
+.srow:hover .sid { text-decoration: underline; text-underline-offset: 3px; }
+.empty { padding: var(--s4) 0; color: var(--ink-2); font-size: 14px; }
+
+/* ---------- session ---------- */
+.session { min-width: 0; }
+.shead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s3) var(--s5); padding-bottom: var(--s4); }
+.shead h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; letter-spacing: -.02em; }
+.shead h2 .id { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 26px; letter-spacing: -.02em; margin-left: 8px; }
+.shead .who { color: var(--ink-2); font-size: 14px; margin-top: 2px; max-width: 62ch; }
+.sscore { display: flex; gap: var(--s5); }
+.sscore div { text-align: right; }
+@media (max-width: 640px) { .sscore div { text-align: left; } }
+.sscore .k { font-size: 13px; color: var(--ink-2); }
+.sscore .v { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-weight: 500; font-size: 24px; line-height: 1.2; }
+
+.prefix { margin-bottom: var(--s5); }
+.prefix-title { font-size: 14px; font-weight: 700; padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); line-height: 1.5; }
+.prefix-title span { font-weight: 400; color: var(--ink-2); }
+.pline { display: grid; grid-template-columns: 28px minmax(0, 1.2fr) minmax(0, 1.4fr) 118px; gap: 0 var(--s3); padding: 6px 0; border-bottom: 1px solid var(--rule-2); align-items: baseline; font-size: 14px; }
+.pline .pos-n { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; color: var(--ink-2); }
+.pline .pt { font-weight: 600; }
+.pline .pa { color: var(--ink-2); }
+@media (max-width: 640px) { .pline { grid-template-columns: 22px minmax(0, 1fr) auto; } .pline .pa { grid-column: 2; grid-row: 2; font-size: 13px; } }
+
+.mtabs { display: none; gap: 2px; margin: 0 0 var(--s3) -8px; }
+@media (max-width: 760px) { .mtabs { display: flex; } }
+.mtabs .tbtn { font-size: 15px; padding: 10px 12px; }
+
+.columns { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s6); }
+@media (max-width: 760px) { .columns { grid-template-columns: 1fr; } .columns[data-view="ours"] .col.base, .columns[data-view="base"] .col.ours { display: none; } }
+.col-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2); padding-bottom: var(--s1); border-bottom: 1px solid var(--ink); }
+.col-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.col-head .ndcg { font-size: 13px; color: var(--ink-2); }
+.col-head .ndcg b { color: var(--ink); font-weight: 500; font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
+
+/* a ranked list is a ledger: rank, game and attributes, reasons, outcome */
+.grow { display: grid; grid-template-columns: 28px minmax(0, 1fr) 104px; gap: 2px var(--s3); padding: 9px 0 10px; border-bottom: 1px solid var(--rule-2); align-items: baseline; }
+.grow .rk { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 15px; color: var(--ink); }
+.grow .body { min-width: 0; }
+.grow .t { font-weight: 700; font-size: 15px; line-height: 1.35; text-decoration: underline transparent; text-underline-offset: 3px; transition: text-decoration-color .15s var(--ease-out); }
+.grow .a { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.grow .a .nohist { color: var(--ink); font-weight: 600; }
+.grow .why { font-size: 13px; line-height: 1.5; margin-top: 3px; color: var(--ink); }
+.grow .why .sg { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-weight: 600; }
+.grow .why .none { color: var(--ink-2); }
+.grow.dim .rk, .grow.dim .t { color: var(--ink-2); }
+.grow.dim .t { font-weight: 600; }
+.grow.twin .t, .grow:hover .t { text-decoration-color: var(--ink); }
+.out { font-size: 14px; line-height: 1.35; text-align: left; white-space: nowrap; color: var(--ink-2); }
+.out .og { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; font-size: 13px; margin-right: 6px; }
+.out.r2, .out.r3 { color: var(--ink); font-weight: 600; }
+.out.r3 { font-weight: 700; }
+.cutoff { font-size: 13px; color: var(--ink-2); padding: 6px 0 var(--s2) 40px; border-top: 1px solid var(--ink); margin-top: -1px; line-height: 1.4; }
+@media (max-width: 420px) { .grow { grid-template-columns: 24px minmax(0, 1fr); } .grow .out { grid-column: 2; } .cutoff { padding-left: 36px; } }
+
+.more {
+  appearance: none; margin-top: var(--s4); border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 0;
+  font: 600 14px/1 var(--sans); padding: 12px 16px; cursor: pointer;
+  transition: background-color .15s var(--ease-out), transform .2s var(--spring);
+}
+.more:hover { background: var(--paper-2); }
+.more:active { background: var(--paper-3); transform: translateY(1px); }
+
+.reveal { animation: rise .32s var(--ease-out) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+.foot { font-size: 14px; color: var(--ink); padding-bottom: var(--s8); }
+.foot p { margin: 0; max-width: 78ch; }
+.foot p + p { margin-top: var(--s2); }
+.err { padding: var(--s5) 0; border-top: 1px solid var(--ink); color: var(--ink); }
+.err code { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="runhead">
+    <span><b>Atoms</b> ranking replay</span>
+  </header>
+
+  <section class="title">
+    <h1>Which games should come next in the feed?</h1>
+    <p class="lede" id="lede">We replayed validation sessions from an earlier feed. For each one, two rankers ordered the same games, and we checked the order against what the player did.</p>
+  </section>
+
+  <section class="row" aria-labelledby="result-h">
+    <h2 id="result-h">The result</h2>
+    <div>
+      <div class="scores">
+        <div class="score"><div class="k">Our ranker</div><div class="v" id="h-ours">&nbsp;</div><div class="w">NDCG@5, mean over <span id="h-n"></span> sessions</div></div>
+        <div class="score"><div class="k">Popularity</div><div class="v" id="h-base">&nbsp;</div><div class="w">The baseline to beat</div></div>
+      </div>
+      <figure class="slicefig">
+        <svg id="forest" class="slices" viewBox="0 -30 820 134" role="img" aria-label="Interval chart of the NDCG gain over popularity"></svg>
+        <figcaption>Gain over popularity in NDCG@5; zero means no gain.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="row" aria-labelledby="howto-h">
+    <h2 id="howto-h">How to read this</h2>
+    <div class="cols">
+      <div>
+        <p>Each session starts with three games the player already saw. The ranker uses those as a hint. The rest of the games are the slate, and both rankers put the slate in order. Only the top five count toward the score.</p>
+        <p>The last column shows what the player did with each game, with the grade the score uses: 0 skipped or quit, 1 played for 20 seconds or more, 2 finished, 3 replayed or shared. A good order puts finished and replayed games near the top.</p>
+        <p>Under each game in our ranking, a plus sign marks a reason that pushed it up and a minus sign marks one that pulled it down.</p>
+      </div>
+      <div>
+        <p>Most of the gain comes from the player's own record with a game's family and mechanic. Taste decides what gets started, and fit decides what gets finished.</p>
+        <p id="cold-note">Players with two or fewer earlier sessions gain much less.</p>
+        <p id="sample-note">The 40 sessions here are a picked sample.</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="workspace" id="app">
+    <aside class="picker" aria-label="Sessions">
+      <h2>Sessions</h2>
+      <div class="filters" role="group" aria-label="Filter sessions" id="filters"></div>
+      <label class="mobile-select"><span class="sr-only">Choose a session</span><select id="sselect"></select></label>
+      <div class="slist" id="slist"></div>
+    </aside>
+    <section class="session" id="session" aria-live="polite"></section>
+  </main>
+
+  <footer class="row foot" aria-labelledby="foot-h">
+    <h2 id="foot-h">About the data</h2>
+    <div>
+      <p>This is an offline replay. The slates are the games an earlier feed chose to show, and the outcomes are what players did with them in that feed. A ranker that would have shown different games cannot be judged here. The numbers measure how well each ranker orders games that were already on screen.</p>
+      <p>Reason labels come from the biggest pushes and pulls on each game's score, grouped and put in plain words. They describe what moved the ranker's score and say nothing about the player's motives.</p>
+      <p>There is no game art, so each game is described by its family, mechanic and difficulty.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+const OUTCOME = ["Skipped", "Played", "Finished", "Replayed"];
+const OUTCOME_LONG = ["Skipped or quit", "Played for 20 seconds or more", "Finished", "Replayed or shared"];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const f3 = x => x.toFixed(3);
+const sgn = (x, d = 3) => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toFixed(d);
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function outcome(rel) {
+  return `<span class="out r${rel}" title="${OUTCOME_LONG[rel]}"><span class="og" aria-hidden="true">${rel}</span>${OUTCOME[rel]}<span class="sr-only">: ${OUTCOME_LONG[rel]}</span></span>`;
+}
+function reasons(rs) {
+  if (!rs.length) return '<span class="none">No strong reason either way</span>';
+  return rs.map(r => {
+    const pos = r.value > 0;
+    return `<span class="rs" title="${pos ? "Pushed it up" : "Pulled it down"} (${sgn(r.value, 2)})"><span class="sg" aria-hidden="true">${pos ? "+" : "−"}</span>&nbsp;<span class="sr-only">${pos ? "For: " : "Against: "}</span>${esc(r.label)}</span>`;
+  }).join(", ");
+}
+
+let DATA, state = { f: "all", s: null, v: "ours", all: false };
+const FILTERS = [
+  ["all", "All", () => true],
+  ["wins", "Ours higher", s => s.ndcg_ours > s.ndcg_base],
+  ["losses", "Ours lower", s => s.ndcg_ours < s.ndcg_base],
+  ["cold", "Cold users", s => s.is_cold_user],
+  ["new", "New games", s => s.has_zero_history_game],
+];
+const SHORT = { win: "big win", loss: "big loss", cold: "cold user", new_game: "new game" };
+const GROUPS = { win: "Biggest wins", loss: "Biggest losses", cold: "Cold users, drawn at random", new_game: "Sessions with a new game, drawn at random" };
+
+function readURL() {
+  const p = new URLSearchParams(location.search.replace(/;/g, "&"));  // ";" also separates params
+  if (FILTERS.some(f => f[0] === p.get("f"))) state.f = p.get("f");
+  if (p.get("s")) state.s = p.get("s");
+  if (p.get("v") === "base") state.v = "base";
+  if (p.get("all") === "1") state.all = true;
+}
+function writeURL() {
+  const p = new URLSearchParams();
+  if (state.f !== "all") p.set("f", state.f);
+  if (state.s) p.set("s", state.s);
+  if (state.v !== "ours") p.set("v", state.v);
+  if (state.all) p.set("all", "1");
+  history.replaceState(null, "", "?" + p.toString());
+}
+const visible = () => DATA.sessions.filter(FILTERS.find(f => f[0] === state.f)[2]);
+
+function renderHeadline(h) {
+  document.getElementById("h-ours").textContent = f3(h.ours);
+  document.getElementById("h-base").textContent = f3(h.baseline);
+  document.getElementById("h-n").textContent = h.sessions;
+  const rows = [
+    { label: "All sessions", n: h.sessions, d: h.mean_diff, lo: h.ci_low, hi: h.ci_high },
+    { label: "Cold users", n: h.cold.sessions, d: h.cold.diff, lo: h.cold.ci_low, hi: h.cold.ci_high },
+  ];
+  const svgEl = document.getElementById("forest");
+  const W = Math.max(300, Math.min(820, Math.round(svgEl.parentElement.clientWidth || 820))), narrow = W < 520;
+  const top = narrow ? 44 : 30, H = 104 + top;
+  svgEl.setAttribute("viewBox", `0 ${-top} ${W} ${H}`);
+  const labW = narrow ? 92 : 150, nX = labW + (narrow ? 22 : 30), valW = narrow ? 48 : 60;
+  const x0 = nX + 18, x1 = W - valW, lo = -0.05, hi = 0.20, X = v => x0 + (v - lo) / (hi - lo) * (x1 - x0);
+  const ticks = narrow ? [0, 0.10, 0.20] : [-0.05, 0, 0.05, 0.10, 0.15, 0.20];
+  let svg = "";
+  [-0.05, 0, 0.05, 0.10, 0.15, 0.20].forEach(t => {
+    if (t === 0) svg += `<line class="zero" x1="${X(t)}" x2="${X(t)}" y1="16" y2="82"/>`;
+    if (ticks.includes(t)) svg += `<text class="tick" x="${X(t)}" y="98" text-anchor="middle">${t === 0 ? "0" : sgn(t, 2)}</text>`;
+  });
+  svg += `<text class="colh" x="${nX}" y="11" text-anchor="end">${narrow ? "n" : "sessions"}</text>`;
+  // inline key above the chart
+  const kx = narrow ? 0 : x0, ky = narrow ? -30 : -16;
+  svg += `<g class="key"><rect class="bar" x="${kx}" y="${ky - 5}" width="16" height="8" rx="1.5"/><text x="${kx + 21}" y="${ky + 2}">measured gain</text>` +
+         `<rect class="band" x="${kx + 118}" y="${ky - 3}" width="16" height="4" rx="1.5"/><text x="${kx + 139}" y="${ky + 2}">likely range (95%)</text>` +
+         (rows.some(r => r.lo <= 0 && r.hi >= 0) ? `<text class="keycross" x="${narrow ? 0 : kx + 268}" y="${narrow ? ky + 18 : ky + 2}">range crossing 0 = not proven</text>` : "") + `</g>`;
+  rows.forEach((r, i) => {
+    const y = 34 + i * 30, cross = r.lo <= 0 && r.hi >= 0;
+    svg += `<g class="${cross ? "cross" : ""}">`;
+    svg += `<text class="lab" x="0" y="${y + 2}">${r.label}</text>`;
+    svg += `<text class="n" x="${nX}" y="${y + 2}" text-anchor="end">${r.n}</text>`;
+    // solid bar = measured gain from zero; slim pale strip under it = likely range (95%)
+    svg += `<rect class="bar" x="${Math.min(X(0), X(r.d))}" y="${y - 7}" width="${Math.abs(X(r.d) - X(0))}" height="10" rx="1.5"/>`;
+    svg += `<rect class="band" x="${X(r.lo)}" y="${y + 5}" width="${X(r.hi) - X(r.lo)}" height="4" rx="1.5"/>`;
+    svg += `<text class="val" x="${X(r.hi) + 8}" y="${y + 2}">${sgn(r.d)}</text>`;
+    svg += `</g>`;
+  });
+  svgEl.innerHTML = svg;
+  const c = h.cold;
+  document.getElementById("cold-note").innerHTML =
+    `<span class="cold-word">Players with two or fewer earlier sessions gain much less:</span> ${sgn(c.diff)} on ${c.sessions} sessions, with an interval from ${sgn(c.ci_low)} to ${sgn(c.ci_high)}. That interval includes zero, so for these players we can't say the ranker beats popularity.`;
+  const sm = DATA.sample;
+  document.getElementById("sample-note").textContent =
+    `The 40 sessions below were picked, so they are not typical. They are the ${sm.win} biggest wins and the ${sm.loss} biggest losses, plus ${sm.cold} cold-user sessions and ${sm.new_game} sessions with a brand-new game drawn at random. The averages above cover all ${h.sessions} sessions. The filters count every one of these 40 where our score is above or below popularity, so \"Ours higher\" also includes some cold-user and new-game sessions.`;
+}
+
+function renderFilters() {
+  document.getElementById("filters").innerHTML = FILTERS.map(([k, label, fn]) =>
+    `<button class="tbtn fbtn" type="button" data-f="${k}" aria-pressed="${state.f === k}">${label}<span class="ct">${DATA.sessions.filter(fn).length}</span></button>`).join("");
+}
+function renderList() {
+  const vs = visible(), el = document.getElementById("slist"), sel = document.getElementById("sselect");
+  if (!vs.length) {
+    el.innerHTML = '<div class="empty">No sessions match this filter. Pick another filter above.</div>';
+    sel.innerHTML = "<option>No sessions match this filter</option>";
+    return;
+  }
+  let html = "", last = null;
+  vs.forEach(s => {
+    if (s.bucket !== last) { html += `<div class="grp">${GROUPS[s.bucket]}</div>`; last = s.bucket; }
+    const d = s.ndcg_ours - s.ndcg_base;
+    const meta = [`player ${s.user_id}`, s.is_cold_user ? "cold user" : null, s.has_zero_history_game ? "new game" : null].filter(Boolean).join(", ");
+    html += `<button class="tbtn srow" type="button" data-s="${s.session_id}" aria-current="${s.session_id === state.s}">
+      <span class="sid">${s.session_id}</span><span class="delta" title="Our NDCG@5 minus popularity">${sgn(d, 2)}</span><span class="meta">${meta}</span></button>`;
+  });
+  el.innerHTML = html;
+  sel.innerHTML = vs.map(s => `<option value="${s.session_id}" ${s.session_id === state.s ? "selected" : ""}>${s.session_id}, ${SHORT[s.bucket]}, ${sgn(s.ndcg_ours - s.ndcg_base, 2)}</option>`).join("");
+}
+
+function gameRow(g, which) {
+  const rank = which === "ours" ? g.rank_ours : g.rank_base;
+  const other = which === "ours" ? `popularity put it #${g.rank_base}` : `our ranker put it #${g.rank_ours}`;
+  const attrs = [`${cap(g.family)}, ${g.mechanic}`, `difficulty ${g.difficulty} of 5`, other].join(", ");
+  return `<article class="grow ${rank <= 5 ? "top" : "dim"}" data-g="${g.game_id}">
+    <span class="rk" aria-label="Rank ${rank}">${rank}</span>
+    <div class="body">
+      <div class="t">${esc(g.title)}</div>
+      <div class="a">${attrs}${g.zero_history ? ', <span class="nohist">no play history</span>' : ""}</div>
+      ${which === "ours" ? `<div class="why">${reasons(g.top_reasons)}</div>` : ""}
+    </div>
+    ${outcome(g.rel)}
+  </article>`;
+}
+function column(s, which) {
+  const key = which === "ours" ? "rank_ours" : "rank_base";
+  const games = [...s.slate].sort((a, b) => a[key] - b[key]);
+  const n = state.all ? games.length : Math.min(games.length, 8);
+  let html = "";
+  games.slice(0, n).forEach((g, i) => {
+    html += gameRow(g, which);
+    if (i === 4 && games.length > 5) html += '<div class="cutoff">Only the five above count toward the score.</div>';
+  });
+  return html;
+}
+function renderSession() {
+  const el = document.getElementById("session");
+  const s = DATA.sessions.find(x => x.session_id === state.s);
+  if (!s) { el.innerHTML = '<div class="err">Pick a session from the list to see both rankings.</div>'; return; }
+  const hist = s.user_history_sessions === 1 ? "1 session" : `${s.user_history_sessions} sessions`;
+  const flags = [
+    s.is_cold_user ? '<span class="cold-word">Cold user.</span>' : "",
+    s.has_zero_history_game ? "The slate has a game with no play history." : "",
+  ].filter(Boolean).join(" ");
+  const more = s.slate.length > 8 ? `<button class="more" type="button" id="more">${state.all ? "Show the top 8 only" : `Show all ${s.slate.length} games`}</button>` : "";
+  el.innerHTML = `<div class="reveal">
+    <div class="shead">
+      <div>
+        <h2>Session<span class="id">${s.session_id}</span></h2>
+        <div class="who">Player ${s.user_id}, ${hist} in the training window, ${s.slate.length} games to rank. ${flags}</div>
+      </div>
+      <div class="sscore">
+        <div><div class="k">Our ranker</div><div class="v">${s.ndcg_ours.toFixed(2)}</div></div>
+        <div><div class="k">Popularity</div><div class="v">${s.ndcg_base.toFixed(2)}</div></div>
+      </div>
+    </div>
+    <div class="prefix">
+      <div class="prefix-title">The first three games of the session <span>(the ranker sees how these went)</span></div>
+      ${s.prefix.map((g, i) => `<div class="pline"><span class="pos-n">${i + 1}</span><span class="pt">${esc(g.title)}</span><span class="pa">${cap(g.family)}, ${g.mechanic}</span>${outcome(g.rel)}</div>`).join("") || '<div class="empty">No opening games were logged for this session.</div>'}
+    </div>
+    <div class="mtabs" role="tablist" aria-label="Choose a ranking">
+      <button class="tbtn mtab" type="button" role="tab" data-v="ours" aria-selected="${state.v === "ours"}">Our ranker</button>
+      <button class="tbtn mtab" type="button" role="tab" data-v="base" aria-selected="${state.v === "base"}">Popularity</button>
+    </div>
+    <div class="columns" data-view="${state.v}">
+      <div class="col ours">
+        <div class="col-head"><h3>Our ranker</h3><span class="ndcg">NDCG@5 <b>${s.ndcg_ours.toFixed(2)}</b></span></div>
+        <div class="list">${column(s, "ours")}</div>
+      </div>
+      <div class="col base">
+        <div class="col-head"><h3>Popularity</h3><span class="ndcg">NDCG@5 <b>${s.ndcg_base.toFixed(2)}</b></span></div>
+        <div class="list">${column(s, "base")}</div>
+      </div>
+    </div>
+    ${more}
+  </div>`;
+}
+function render() {
+  const vs = visible();
+  if (!vs.some(s => s.session_id === state.s)) state.s = vs.length ? vs[0].session_id : null;
+  renderFilters(); renderList(); renderSession(); writeURL();
+}
+
+document.addEventListener("click", e => {
+  const fb = e.target.closest(".fbtn"); if (fb) { state.f = fb.dataset.f; state.all = false; return render(); }
+  const sr = e.target.closest(".srow"); if (sr) { state.s = sr.dataset.s; state.all = false; return render(); }
+  const mt = e.target.closest(".mtab"); if (mt) { state.v = mt.dataset.v; return render(); }
+  if (e.target.closest("#more")) { state.all = !state.all; return render(); }
+});
+document.getElementById("sselect").addEventListener("change", e => { state.s = e.target.value; state.all = false; render(); });
+document.addEventListener("mouseover", e => {
+  const c = e.target.closest(".grow");
+  document.querySelectorAll(".grow.twin").forEach(x => x.classList.remove("twin"));
+  if (c) document.querySelectorAll(`.grow[data-g="${c.dataset.g}"]`).forEach(x => x !== c && x.classList.add("twin"));
+});
+
+readURL();
+fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+  DATA = d; renderHeadline(d.headline); render();
+  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => renderHeadline(d.headline), 150); });
+}).catch(err => {
+  document.getElementById("app").innerHTML = `<div class="err">The session data did not load (${esc(err.message)}). Serve the project folder with <code>node serve.mjs</code> and open http://localhost:3000/demo/.</div>`;
+});
+</script>
+</body>
+</html>

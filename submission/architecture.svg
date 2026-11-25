@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 521 400" width="521pt" height="400pt" class="ad">
+<title>Swipe-feed recommender: data flow and latency split</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;500&amp;family=Schibsted+Grotesk:wght@400;600;700&amp;family=Young+Serif&amp;display=block');
+.ad text{font-family:'Schibsted Grotesk','Segoe UI',Arial,sans-serif;font-size:8px;fill:#1E2622}
+.ad .ad-bg{fill:#EBEFE8}
+.ad .hd{font-family:'Young Serif',Georgia,serif;font-size:10.5px}
+.ad .ttl{font-family:'Young Serif',Georgia,serif;font-size:12.5px}
+.ad .b{font-weight:600;font-size:8.6px}
+.ad .big{font-weight:700;font-size:10px}
+.ad .m{font-family:'Funnel Sans','Schibsted Grotesk',Arial,sans-serif;font-size:8px;font-variant-numeric:tabular-nums lining-nums}
+.ad .mute{fill:#56605A}
+.ad .acc{fill:#B02A17}
+.ad .on{fill:#EBEFE8}
+.ad .ln{fill:none;stroke:#56605A;stroke-width:.8}
+.ad .la{fill:none;stroke:#B02A17;stroke-width:1.5}
+.ad .lk{fill:none;stroke:#1E2622;stroke-width:1.1}
+.ad .frame{fill:none;stroke:#1E2622;stroke-width:.8}
+.ad .store{fill:#E1E7DE;stroke:#1E2622;stroke-width:1.6}
+.ad .dash{fill:none;stroke:#1E2622;stroke-width:.8;stroke-dasharray:4 3}
+.ad .feed{fill:#B02A17}
+.ad .hair{stroke:#9AA59D;stroke-width:.6}
+</style>
+<defs>
+<marker id="ah-k" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0.6 L8,4 L0,7.4 z" fill="#56605A"/></marker>
+<marker id="ah-a" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0.6 L8,4 L0,7.4 z" fill="#B02A17"/></marker>
+<marker id="ah-i" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0.6 L8,4 L0,7.4 z" fill="#1E2622"/></marker>
+</defs>
+<rect class="ad-bg" x="-14" y="-14" width="521" height="400"/>
+<text class="ttl ad-title" x="0" y="14">Swipe-feed recommender: data flow and latency split</text>
+
+<!-- event logging: a framed object, the log -->
+<rect class="frame" x="0.5" y="28" width="104" height="172"/>
+<text class="hd" x="8" y="44">Event logging</text>
+<text class="b" x="8" y="60">Impressions</text>
+<text x="8" y="70">with shown-probability</text>
+<text x="8" y="80">(propensity)</text>
+<text x="8" y="95">Preview watch</text>
+<text x="8" y="106">Play now</text>
+<text x="8" y="117">Play time</text>
+<text x="8" y="128">Finish, score</text>
+<text x="8" y="139">Replay, share, challenge</text>
+<line class="hair" x1="8" y1="150" x2="97" y2="150"/>
+<text class="b" x="8" y="162">Proposed new signals</text>
+<text x="8" y="175">Quit reason</text>
+<text x="8" y="187">1-tap &#8220;fun?&#8221; prompt</text>
+
+<!-- logging to offline -->
+<path class="ln" d="M105,66 H136" marker-end="url(#ah-k)"/>
+<text class="mute" x="121" y="61" text-anchor="middle">nightly</text>
+
+<!-- offline, nightly batch -->
+<text class="hd" x="140" y="44">Offline, nightly batch</text>
+<text class="b" x="140" y="60">Game stats</text>
+<text x="140" y="70">+ attribute priors</text>
+<text x="140" y="80">(for cold games)</text>
+<text class="b" x="228" y="60">Skill / difficulty</text>
+<text x="228" y="70">Elo ratings</text>
+<text x="228" y="80">player &#215; game</text>
+<text class="b" x="316" y="60">Taste profiles</text>
+<text x="316" y="70">family / mechanic</text>
+<text x="316" y="80">affinity</text>
+<text class="b" x="404" y="60">Friend aggregates</text>
+<text x="404" y="70">what friends play</text>
+<text x="404" y="80">and replay</text>
+<path class="ln" d="M146,86 V92 M234,86 V92 M322,86 V92 M410,86 V92 M146,92 H478"/>
+<path class="ln" d="M166,92 V102" marker-end="url(#ah-k)"/>
+<text class="b" x="140" y="113">Ranker training</text>
+<text x="140" y="123">logistic regression, 3 heads:</text>
+<text x="140" y="133">play, finish, replay-share</text>
+<path class="ln" d="M254,116 H274" marker-end="url(#ah-k)"/>
+<text class="b" x="278" y="113">Offline replay eval</text>
+<text x="278" y="123">logged slates re-ranked,</text>
+<text x="278" y="133">NDCG vs baseline</text>
+<path class="ln" d="M478,92 V150 H330 V156" marker-end="url(#ah-k)"/>
+<text class="mute" x="472" y="113" text-anchor="end">per-player and per-game</text>
+<text class="mute" x="472" y="123" text-anchor="end">feature rows</text>
+<path class="ln" d="M166,138 V156" marker-end="url(#ah-k)"/>
+<text class="mute" x="171" y="150">weights</text>
+
+<!-- boundary and store -->
+<path class="dash" d="M105,172 H112 M358,172 H493"/>
+<text class="mute" x="493" y="167" text-anchor="end">Offline: hours, batch</text>
+<text class="b acc" x="493" y="184" text-anchor="end">Online: &lt; 100 ms per swipe</text>
+<rect class="store" x="112" y="158" width="246" height="30"/>
+<text class="b" x="235" y="171" text-anchor="middle">Key-value feature store</text>
+<text x="235" y="182" text-anchor="middle">per-player row, per-game row, model weights</text>
+
+<!-- store to online: both inputs drop straight down -->
+<path class="la" d="M116,188 V226" marker-end="url(#ah-a)"/>
+<text class="mute" x="121" y="206">rows</text>
+<path class="la" d="M252,188 V226" marker-end="url(#ah-a)"/>
+<text class="mute" x="257" y="206">weights + rows</text>
+
+<!-- online, per swipe -->
+<text class="b acc" x="40" y="240">Candidate sources</text>
+<text x="40" y="254">taste match</text>
+<text x="40" y="265">fresh games</text>
+<text x="40" y="276">friends&#8217; games</text>
+<text x="40" y="287">replay-worthy favourites</text>
+<text x="40" y="298">daily challenge</text>
+<path class="la" d="M124,237 H142" marker-end="url(#ah-a)"/>
+
+<text class="b acc" x="146" y="240">Session state</text>
+<text x="146" y="254">in memory,</text>
+<text x="146" y="265">updated per event</text>
+<text x="146" y="280">last plays</text>
+<text x="146" y="291">quits</text>
+<text x="146" y="302">mood shift</text>
+<path class="la" d="M206,237 H232" marker-end="url(#ah-a)"/>
+
+<text class="big acc" x="236" y="241">Ranker</text>
+<text x="236" y="254">logistic, 3 heads</text>
+<text x="236" y="265">play, finish,</text>
+<text x="236" y="276">replay-share</text>
+<text x="236" y="291">scores every</text>
+<text x="236" y="302">candidate</text>
+<text class="m acc" x="236" y="316">ranking</text><path d="M266.6,311.6 q1.4,-1.4 2.8,0 t2.8,0 M266.6,314.2 q1.4,-1.4 2.8,0 t2.8,0" fill="none" stroke="#B02A17" stroke-width="0.7" stroke-linecap="round"><title>approximately</title></path><text class="m acc" x="275.2" y="316">1 ms</text>
+<text class="acc" x="236" y="326">measured in prototype</text>
+<path class="la" d="M279,237 H324" marker-end="url(#ah-a)"/>
+
+<text class="b acc" x="328" y="240">Re-rank</text>
+<text class="b" x="328" y="254">Exploration slots</text>
+<text x="328" y="265">Thompson sampling;</text>
+<text x="328" y="276">attribute priors</text>
+<text x="328" y="287">for new games</text>
+<text class="b" x="328" y="300">Diversity</text>
+<text class="b" x="328" y="311">Skill-fit band</text>
+<path class="la" d="M366,237 H418" marker-end="url(#ah-a)"/>
+
+<rect class="feed" x="422" y="224" width="71" height="62"/>
+<text class="big on" x="430" y="241">Feed</text>
+<text class="on" x="430" y="255">next game,</text>
+<text class="on" x="430" y="266">12 s preview</text>
+
+<!-- feedback loop, with the branch that updates session state on every event -->
+<path class="lk" d="M458,286 V336 H4 V202" marker-end="url(#ah-i)"/>
+<circle cx="170" cy="336" r="1.9" fill="#1E2622"/>
+<path class="lk" d="M170,336 V309" marker-end="url(#ah-i)"/>
+<text class="mute" x="165" y="325" text-anchor="end">every event updates session state</text>
+<text x="240" y="348" text-anchor="middle" class="mute">feedback loop: games shown (with propensity) and what players do next are logged</text>
+
+<!-- budget bracket -->
+<path class="lk" d="M40,355 V360 H418 V355"/>
+<text class="b" x="229" y="372" text-anchor="middle">budget for this whole path: &lt; 100 ms per swipe</text>
+</svg>
